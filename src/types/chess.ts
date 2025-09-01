@@ -68,6 +68,7 @@ export interface GameControlsProps {
   onUndoMove: () => void;
 }
 
+
 // Chess logic utility types
 export interface MoveValidationResult {
   isValid: boolean;
