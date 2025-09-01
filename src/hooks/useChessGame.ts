@@ -29,7 +29,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       // If clicking on own piece, select it
       if (piece && piece.color === state.currentPlayer) {
-        const validMoves = getValidMoves(state.board, square, piece)
+        const validMoves = getValidMoves(state.board, square, piece, state.castlingRights)
         return {
           ...state,
           selectedSquare: square,
@@ -57,14 +57,30 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const newBoard = state.board.map(row => [...row])
       const [fromRow, fromCol] = [BOARD_SIZE - parseInt(from[1]), from.charCodeAt(0) - 'a'.charCodeAt(0)]
       const [toRow, toCol] = [BOARD_SIZE - parseInt(to[1]), to.charCodeAt(0) - 'a'.charCodeAt(0)]
-      
+
       const capturedPiece = newBoard[toRow][toCol]
       const movedPiecePrevHasMoved = piece.hasMoved
       const capturedPrevHasMoved = capturedPiece ? capturedPiece.hasMoved : undefined
 
+      // Check if this is a castling move (king moves two squares horizontally)
+      const isCastling = piece.type === 'king' && Math.abs(toCol - fromCol) === 2
+      
       // Update board state
       newBoard[toRow][toCol] = { ...piece, hasMoved: true }
       newBoard[fromRow][fromCol] = null
+      
+      // Handle castling: move the rook as well
+      if (isCastling) {
+        const isKingSide = toCol > fromCol
+        const rookFromCol = isKingSide ? 7 : 0 // h-file or a-file
+        const rookToCol = isKingSide ? 5 : 3   // f-file or d-file
+        
+        const rook = newBoard[fromRow][rookFromCol]
+        if (rook) {
+          newBoard[fromRow][rookToCol] = { ...rook, hasMoved: true }
+          newBoard[fromRow][rookFromCol] = null
+        }
+      }
 
       // Update castling rights based on this move (including captured rook handling)
       const nextCastlingRights = updateCastlingRightsForMove(
@@ -126,6 +142,9 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const [fromRow, fromCol] = [BOARD_SIZE - parseInt(lastMove.from[1]), lastMove.from.charCodeAt(0) - 'a'.charCodeAt(0)]
       const [toRow, toCol] = [BOARD_SIZE - parseInt(lastMove.to[1]), lastMove.to.charCodeAt(0) - 'a'.charCodeAt(0)]
       
+      // Check if this was a castling move
+      const wasCastling = lastMove.piece.type === 'king' && Math.abs(toCol - fromCol) === 2
+      
       // Restore piece to original position with previous hasMoved state
       newBoard[fromRow][fromCol] = { ...lastMove.piece, hasMoved: lastMove.prevHasMoved }
       // Restore captured piece (if any) with its previous hasMoved state
@@ -133,6 +152,20 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         newBoard[toRow][toCol] = { ...lastMove.captured, hasMoved: lastMove.prevCapturedHasMoved ?? lastMove.captured.hasMoved }
       } else {
         newBoard[toRow][toCol] = null
+      }
+      
+      // Handle castling undo: restore the rook as well
+      if (wasCastling) {
+        const isKingSide = toCol > fromCol
+        const rookFromCol = isKingSide ? 7 : 0 // h-file or a-file
+        const rookToCol = isKingSide ? 5 : 3   // f-file or d-file
+        
+        const rook = newBoard[fromRow][rookToCol]
+        if (rook) {
+          // Restore rook to original position (it was also not moved before castling)
+          newBoard[fromRow][rookFromCol] = { ...rook, hasMoved: false }
+          newBoard[fromRow][rookToCol] = null
+        }
       }
       
       const nextCurrent = state.currentPlayer === 'white' ? 'black' : 'white'

@@ -1,4 +1,4 @@
-import { Board, ChessPiece, Square, PieceType, PieceColor } from '../types/chess'
+import { Board, ChessPiece, Square, PieceType, PieceColor, CastlingRights } from '../types/chess'
 import {
   getCoordinatesFromSquare,
   getSquareFromCoordinates,
@@ -6,11 +6,12 @@ import {
   isEmptySquare,
   isOpponentPiece,
   isOwnPiece,
-  BOARD_SIZE
+  BOARD_SIZE,
+  getPieceAtSquare
 } from './chessUtils'
 
 // Get all valid moves for a piece at a given square
-export const getValidMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
+export const getValidMoves = (board: Board, square: Square, piece: ChessPiece, castlingRights?: CastlingRights): Square[] => {
   if (!isValidSquare(square)) return []
 
   let moves: Square[] = []
@@ -31,7 +32,7 @@ export const getValidMoves = (board: Board, square: Square, piece: ChessPiece): 
       moves = getQueenMoves(board, square, piece)
       break
     case 'king':
-      moves = getKingMoves(board, square, piece)
+      moves = getKingMoves(board, square, piece, castlingRights)
       break
     default:
       moves = []
@@ -175,10 +176,8 @@ const getQueenMoves = (board: Board, square: Square, piece: ChessPiece): Square[
   ]
 }
 
-// King movement logic
-// Note: Castling moves are not implemented in this move generator.
-// Endgame detection (checkmate/stalemate) therefore ignores potential legal castling moves.
-const getKingMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
+// King movement logic with castling support
+const getKingMoves = (board: Board, square: Square, piece: ChessPiece, castlingRights?: CastlingRights): Square[] => {
   const moves: Square[] = []
   const [row, col] = getCoordinatesFromSquare(square)
   
@@ -194,6 +193,59 @@ const getKingMoves = (board: Board, square: Square, piece: ChessPiece): Square[]
     
     if (isValidSquare(newSquare) && !isOwnPiece(board, newSquare, piece.color)) {
       moves.push(newSquare)
+    }
+  }
+  
+  // Add castling moves if castling rights are provided and king hasn't moved
+  if (castlingRights && !piece.hasMoved) {
+    const color = piece.color
+    const kingRow = color === 'white' ? 7 : 0
+    const kingCol = 4 // e-file
+    
+    // Verify king is on starting square
+    if (row === kingRow && col === kingCol) {
+      // King-side castling
+      if (castlingRights[color].kingSide) {
+        const rookSquare = color === 'white' ? 'h1' : 'h8'
+        const rook = getPieceAtSquare(board, rookSquare)
+        
+        if (rook && rook.type === 'rook' && rook.color === color && !rook.hasMoved) {
+          // Check if squares between king and rook are empty
+          const f = getSquareFromCoordinates(kingRow, 5) // f-file
+          const g = getSquareFromCoordinates(kingRow, 6) // g-file
+          
+          if (isEmptySquare(board, f) && isEmptySquare(board, g)) {
+            // Check if king doesn't move through check
+            if (!isKingInCheck(board, color, square) && 
+                !isKingInCheck(board, color, f) && 
+                !isKingInCheck(board, color, g)) {
+              moves.push(g) // King moves to g-file for king-side castling
+            }
+          }
+        }
+      }
+      
+      // Queen-side castling
+      if (castlingRights[color].queenSide) {
+        const rookSquare = color === 'white' ? 'a1' : 'a8'
+        const rook = getPieceAtSquare(board, rookSquare)
+        
+        if (rook && rook.type === 'rook' && rook.color === color && !rook.hasMoved) {
+          // Check if squares between king and rook are empty
+          const b = getSquareFromCoordinates(kingRow, 1) // b-file
+          const c = getSquareFromCoordinates(kingRow, 2) // c-file
+          const d = getSquareFromCoordinates(kingRow, 3) // d-file
+          
+          if (isEmptySquare(board, b) && isEmptySquare(board, c) && isEmptySquare(board, d)) {
+            // Check if king doesn't move through check
+            if (!isKingInCheck(board, color, square) && 
+                !isKingInCheck(board, color, d) && 
+                !isKingInCheck(board, color, c)) {
+              moves.push(c) // King moves to c-file for queen-side castling
+            }
+          }
+        }
+      }
     }
   }
   
