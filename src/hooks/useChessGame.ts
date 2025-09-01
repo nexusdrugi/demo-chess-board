@@ -88,7 +88,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
 
       // Create move record capturing previous states for undo with proper algebraic notation
-      const notation = generateAlgebraicNotation(newBoard, piece, from, to, capturedPiece || undefined, finalStatus)
+      const notation = generateAlgebraicNotation(state.board, piece, from, to, capturedPiece, finalStatus)
       const move: Move = {
         from,
         to,

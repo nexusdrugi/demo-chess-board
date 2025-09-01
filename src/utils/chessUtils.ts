@@ -240,7 +240,8 @@ export const generateAlgebraicNotation = (
   from: Square,
   to: Square,
   captured?: ChessPiece | null,
-  resultStatus?: GameStatus
+  resultStatus?: GameStatus,
+  opts?: { promotion?: PieceType; enPassant?: boolean }
 ): string => {
   // Castling
   const castle = isCastlingMove(piece, from, to)
@@ -252,10 +253,21 @@ export const generateAlgebraicNotation = (
 
   // Pawn moves
   if (piece.type === 'pawn') {
-    const captureMark = captured ? 'x' : ''
-    const base = captured ? `${from[0]}${captureMark}${to}` : `${to}`
+    const isEp = !!opts?.enPassant
+    const isCapture = !!captured || isEp
+    const captureMark = isCapture ? 'x' : ''
+    const base = isCapture ? `${from[0]}${captureMark}${to}` : `${to}`
+
+    // Promotion support (default to queen if promotion not specified)
+    const isPromotion =
+      (piece.color === 'white' && to[1] === '8') ||
+      (piece.color === 'black' && to[1] === '1')
+    const promoPiece = isPromotion ? (opts?.promotion ?? 'queen') : undefined
+    const promoSuffix = promoPiece ? `=${getPieceNotationSymbol(promoPiece)}` : ''
+
+    const epMark = isEp ? ' e.p.' : ''
     const suffix = resultStatus === 'checkmate' ? '#' : resultStatus === 'check' ? '+' : ''
-    return base + suffix
+    return base + promoSuffix + epMark + suffix
   }
 
   // Pieces other than pawn
