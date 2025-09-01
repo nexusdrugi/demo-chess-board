@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-09-01 - Reset Confirmation & SAN Notation
+
+### Added
+- Reusable, accessible ConfirmationDialog component and integration into GameControls. Reset now shows a confirmation dialog before clearing the game.
+- Standard Algebraic Notation (SAN) in move history with disambiguation, captures, castling, and check/checkmate indicators.
+- SAN generator support for future promotions and en passant formatting.
+
+### Changed
+- Pawn attack detection uses diagonal-only attack generator for accurate check detection.
+- Game status now sets 'check' when applicable (not just active/checkmate/stalemate).
+- Undo is allowed after game end to let users step back from checkmate/stalemate positions.
+
+### Documentation
+- Updated README.md with SAN move history and reset confirmation dialog details.
+
 ## 2025-09-01 - Endgame Detection
 
 ### Added

@@ -14,10 +14,14 @@ A fully functional chess game built with React, TypeScript, and Tailwind CSS. Fe
 - **Endgame Detection**:
   - Automatic detection of checkmate and stalemate
   - "Check!" warning while the game is active
+- **Move Notation**: Move history uses Standard Algebraic Notation (SAN) with disambiguation, captures, castling, and check/checkmate indicators
 - **Visual Feedback**: 
   - Highlighted selected pieces
   - Valid move indicators
   - Chess board with alternating square colors
+- **Game Controls**:
+  - Prominent Reset button with confirmation dialog
+  - Undo move support (even after game end)
 - **Game State Management**: Turn-based gameplay with proper state tracking
 - **Responsive Design**: Clean, modern UI that works on different screen sizes
 
@@ -91,7 +95,7 @@ src/
    - **Drag & Drop**: Drag the piece to a valid destination square
 3. **Valid Moves**: Valid destination squares are highlighted when a piece is selected
 4. **Turn System**: Players alternate turns (white moves first)
-5. **Game Controls**: Use the "Reset Game" button to restart; use "Undo Move" to revert the last move (disabled after the game ends)
+5. **Game Controls**: Use the "Reset Game" button to restart (you'll be asked to confirm); use "Undo Move" to revert the last move.
 
 ## Game Rules Implemented
 
