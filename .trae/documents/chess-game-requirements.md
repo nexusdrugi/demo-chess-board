@@ -95,7 +95,6 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - Castling moves are fully implemented with proper validation and execution ✅
 - En passant capture remains out of scope for this iteration
 - Pawn promotion is not yet implemented
-- Note: Endgame detection (checkmate/stalemate) does not account for potential castling moves since they are not implemented
 
 ## 9. Check Detection Requirements (Implemented)
 - The system MUST prevent any move that leaves the moving side's king in check (self-check moves are illegal). ✅
@@ -131,7 +130,31 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - Dialog MUST have clear "Reset Game" and "Cancel" options. ✅
 - Dialog MUST prevent accidental game resets through explicit confirmation. ✅
 
-## 13. Testing Requirements
+## 13. Undo/Redo Requirements (Implemented)
+- The system MUST provide undo functionality to revert the last move. ✅
+- The system MUST provide redo functionality to replay undone moves. ✅
+- Undo MUST properly restore piece positions, capture states, and castling rights. ✅
+- Redo MUST accurately replay moves with proper notation and state updates. ✅
+- Making a new move MUST clear the redo history. ✅
+
+### 13.1 Acceptance Criteria
+- Undo button is disabled when moveHistory is empty. ✅
+- Redo button is disabled when redoHistory is empty. ✅
+- Castling moves are properly undone/redone (both king and rook positions). ✅
+- Game status (check/checkmate/stalemate) is recalculated after undo/redo. ✅
+
+## 14. Castling Requirements (Implemented)
+- The system MUST support both king-side (O-O) and queen-side (O-O-O) castling. ✅
+- Castling MUST only be allowed when all conditions are met: ✅
+  - King and rook have not moved
+  - No pieces between king and rook
+  - King is not in check
+  - King does not move through check
+  - King does not end in check
+- The rook MUST automatically move to the correct position when castling. ✅
+- Castling notation MUST display as "O-O" or "O-O-O" in move history. ✅
+
+## 15. Testing Requirements
 - Unit tests MUST be provided for core game logic
 - Test coverage includes:
   - Move validation for all piece types

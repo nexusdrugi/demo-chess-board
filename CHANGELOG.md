@@ -2,10 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
-## 2025-09-01 - Documentation Update for Recent Features
+## 2025-09-01 - Complete Documentation Update
 
 ### Documentation
-- Updated all documentation to reflect recently implemented features:
+- Updated all documentation to accurately reflect the complete implementation:
   - **Technical Architecture Document**:
     - Added Section 12: Endgame Detection with checkmate/stalemate functions
     - Added Section 13: Standard Algebraic Notation (SAN) System
@@ -18,11 +18,17 @@ All notable changes to this project will be documented in this file.
     - Added Section 12: User Confirmation Requirements (reset dialog ✅)
     - Updated status display to reflect checkmate/stalemate/check indicators
     - Updated move history to mention Standard Algebraic Notation
+    - Added Section 13: Undo/Redo Requirements (fully implemented)
+    - Added Section 14: Castling Requirements (fully implemented)
+    - Fixed contradictory statements about castling implementation
   - **WARP.md**:
     - Added endgame detection functions to move validation section
     - Added generateAlgebraicNotation() to utils documentation
     - Added ConfirmationDialog component to app composition
     - Updated GameControls description to include SAN notation and endgame status
+    - Added redoHistory to state management
+    - Documented that castling is fully implemented
+    - Added REDO_MOVE action to documented actions
 
 ## 2025-09-01 - Confirmation Dialog UX & SSR Improvements
 
@@ -84,7 +90,7 @@ All notable changes to this project will be documented in this file.
     - Added checkmarks to show check detection requirements are met
     - Added new Testing Requirements section
 
-## 2025-01-22 - Castling Implementation
+## 2025-09-01 - Castling and Redo Implementation
 
 ### Added
 - Full castling functionality for both king-side and queen-side castling
@@ -97,6 +103,11 @@ All notable changes to this project will be documented in this file.
   - Proper castling rights updates
   - Undo support for castling moves (restores both king and rook positions)
 - Standard Algebraic Notation support for castling (O-O for king-side, O-O-O for queen-side)
+- Complete redo functionality:
+  - `redoHistory` array tracks undone moves
+  - `REDO_MOVE` action re-executes undone moves
+  - Redo button in GameControls with proper enable/disable logic
+  - Full state restoration including castling moves
 
 ### Changed
 - Updated `getKingMoves` function to accept `castlingRights` parameter
@@ -107,8 +118,9 @@ All notable changes to this project will be documented in this file.
 - Updated README.md to include castling in implemented features and game rules
 - Added castling instructions to "How to Play" section
 - Removed castling from "Future Enhancements" list
+- Updated all technical documentation to reflect castling and redo implementation
 
-## 2025-09-01 - Previous Updates
+## 2025-09-01 - Initial Implementation
 
 ### Added
 - Comprehensive drag-and-drop input validation.

@@ -131,12 +131,13 @@ interface GameState {
   board: Board;
   currentPlayer: PieceColor;
   moveHistory: Move[];
-  redoHistory: Move[]; // Tracks undone moves for redo functionality
+  redoHistory: Move[];  // Stack of moves that can be redone
   gameStatus: GameStatus;
   selectedSquare: Square | null;
   validMoves: Square[];
   isInCheck: boolean;
   castlingRights: CastlingRights;
+}
 }
 
 // Component props interfaces
@@ -160,6 +161,7 @@ interface GameControlsProps {
   onResetGame: () => void;
   onUndoMove: () => void;
   onRedoMove: () => void;
+}
 }
 
 // Chess logic utility types
@@ -239,36 +241,7 @@ type GameAction =
   - Supports castling move undo by restoring both pieces to original positions.
   - Sets gameStatus to 'check' when player is in check but game continues.
 
-## 11. Castling Implementation (Implemented)
-
-- Full castling functionality for both king-side and queen-side castling
-- Castling validation includes:
-  - Castling rights verification (king and rook haven't moved)
-  - Path clearance validation (no pieces between king and rook)
-  - Safety validation (king not in check, doesn't move through check, doesn't end in check)
-- Castling execution automatically moves both king and rook to correct positions
-- Undo support properly restores both pieces
-- Standard Algebraic Notation support (O-O for king-side, O-O-O for queen-side)
-
-## 12. Redo Functionality Implementation (Implemented)
-
-- Complete redo functionality to restore previously undone moves
-- State management:
-  - `redoHistory` array in GameState tracks undone moves
-  - `REDO_MOVE` action restores moves with full state restoration
-  - `UNDO_MOVE` action pushes moves to redoHistory
-  - `MAKE_MOVE` action clears redoHistory when new moves are made
-- UI integration:
-  - Redo button in GameControls component
-  - Proper enable/disable logic based on redoHistory availability
-- State restoration includes:
-  - Board position restoration
-  - Captured pieces restoration
-  - Move history management
-  - Castling rights restoration
-  - Turn management
-
-## 13. Testing Architecture
+## 11. Testing Architecture
 
 - Testing framework: Vitest with React Testing Library
 - Test organization:
@@ -317,7 +290,52 @@ type GameAction =
   - Includes move numbers and from/to squares for clarity
   - Professional chess notation for better game analysis
 
-## 14. User Experience Enhancements
+## 14. Castling Implementation (Fully Implemented)
+
+- Move Validation (utils/moveValidation.ts)
+  - getKingMoves() accepts castlingRights parameter for castling validation
+  - Validates all castling conditions:
+    - King and rook haven't moved
+    - Path between king and rook is clear
+    - King is not in check
+    - King doesn't move through or into check
+  - Adds castling squares (g1/g8 for kingside, c1/c8 for queenside) to valid moves
+- Move Execution (hooks/useChessGame.ts)
+  - Detects castling moves (king moving 2 squares horizontally)
+  - Automatically moves rook to correct position (f-file for kingside, d-file for queenside)
+  - Updates castling rights after king or rook moves
+- Undo/Redo Support
+  - Properly restores both king and rook positions when undoing castling
+  - Restores hasMoved flags for both pieces
+  - Maintains castling rights history through moves
+- Notation
+  - Displays "O-O" for kingside castling
+  - Displays "O-O-O" for queenside castling
+  - Properly appends check/checkmate indicators
+
+## 15. Undo/Redo System (Implemented)
+
+- State Management
+  - moveHistory: Array of completed moves
+  - redoHistory: Stack of undone moves available for redo
+  - Making a new move clears redoHistory
+- Undo Operation (UNDO_MOVE action)
+  - Removes last move from moveHistory
+  - Restores board state to previous position
+  - Handles special cases (castling, captures)
+  - Adds undone move to redoHistory
+  - Recalculates game status and check state
+- Redo Operation (REDO_MOVE action)
+  - Takes last move from redoHistory
+  - Re-executes the move on the board
+  - Restores move to moveHistory
+  - Maintains all move metadata and notation
+- UI Controls (GameControls.tsx)
+  - Undo button disabled when moveHistory is empty
+  - Redo button disabled when redoHistory is empty
+  - Visual feedback with hover states and disabled states
+
+## 16. User Experience Enhancements
 
 - Confirmation Dialogs (components/ConfirmationDialog.tsx)
   - Reusable modal component for user confirmations
