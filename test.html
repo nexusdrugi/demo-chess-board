@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Game Test</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .chess-square {
+            width: 4rem;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .chess-square-light {
+            background-color: #D2B48C;
+        }
+        .chess-square-dark {
+            background-color: #8B4513;
+        }
+        .chess-square-selected {
+            box-shadow: 0 0 0 4px #4A90E2;
+        }
+        .chess-square-valid-move {
+            position: relative;
+        }
+        .chess-square-valid-move::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: #7ED321;
+            opacity: 0.3;
+            border-radius: 50%;
+            margin: 1rem;
+        }
+        .chess-piece {
+            font-size: 2.5rem;
+            user-select: none;
+            transition: transform 0.2s;
+            cursor: grab;
+        }
+        .chess-piece:active {
+            cursor: grabbing;
+        }
+        .chess-piece:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // Simple chess game test
+        const { useState, useCallback } = React;
+        
+        // Chess piece symbols
+        const pieceSymbols = {
+            white: {
+                king: '♔',
+                queen: '♕',
+                rook: '♖',
+                bishop: '♗',
+                knight: '♘',
+                pawn: '♙'
+            },
+            black: {
+                king: '♚',
+                queen: '♛',
+                rook: '♜',
+                bishop: '♝',
+                knight: '♞',
+                pawn: '♟'
+            }
+        };
+        
+        // Initial board setup
+        const createInitialBoard = () => {
+            const board = Array(8).fill(null).map(() => Array(8).fill(null));
+            
+            // Place pawns
+            for (let i = 0; i < 8; i++) {
+                board[1][i] = { type: 'pawn', color: 'black', hasMoved: false };
+                board[6][i] = { type: 'pawn', color: 'white', hasMoved: false };
+            }
+            
+            // Place other pieces
+            const pieceOrder = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'];
+            for (let i = 0; i < 8; i++) {
+                board[0][i] = { type: pieceOrder[i], color: 'black', hasMoved: false };
+                board[7][i] = { type: pieceOrder[i], color: 'white', hasMoved: false };
+            }
+            
+            return board;
+        };
+        
+        const ChessGame = () => {
+            const [board, setBoard] = useState(createInitialBoard());
+            const [currentPlayer, setCurrentPlayer] = useState('white');
+            const [selectedSquare, setSelectedSquare] = useState(null);
+            
+            const getSquareColor = (file, rank) => {
+                return (file.charCodeAt(0) - 'a'.charCodeAt(0) + rank) % 2 === 0 ? 'dark' : 'light';
+            };
+            
+            const handleSquareClick = (square) => {
+                const [file, rank] = [square[0], parseInt(square[1])];
+                const row = 8 - rank;
+                const col = file.charCodeAt(0) - 'a'.charCodeAt(0);
+                const piece = board[row][col];
+                
+                if (selectedSquare) {
+                    // Try to move
+                    const [fromFile, fromRank] = [selectedSquare[0], parseInt(selectedSquare[1])];
+                    const fromRow = 8 - fromRank;
+                    const fromCol = fromFile.charCodeAt(0) - 'a'.charCodeAt(0);
+                    
+                    if (selectedSquare !== square) {
+                        const newBoard = board.map(row => [...row]);
+                        newBoard[row][col] = newBoard[fromRow][fromCol];
+                        newBoard[fromRow][fromCol] = null;
+                        setBoard(newBoard);
+                        setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
+                    }
+                    setSelectedSquare(null);
+                } else if (piece && piece.color === currentPlayer) {
+                    setSelectedSquare(square);
+                }
+            };
+            
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+            const ranks = [8, 7, 6, 5, 4, 3, 2, 1];
+            
+            return (
+                <div className="flex flex-col items-center">
+                    <h1 className="text-3xl font-bold mb-8">Chess Game Test</h1>
+                    <div className="mb-4">
+                        <span className="text-lg font-semibold">
+                            Current Player: {currentPlayer === 'white' ? '⚪ White' : '⚫ Black'}
+                        </span>
+                    </div>
+                    <div className="inline-block bg-gray-800 p-4 rounded-lg shadow-2xl">
+                        <div className="grid grid-cols-8 border-2 border-gray-700">
+                            {ranks.map(rank =>
+                                files.map(file => {
+                                    const square = `${file}${rank}`;
+                                    const row = 8 - rank;
+                                    const col = files.indexOf(file);
+                                    const piece = board[row][col];
+                                    const isSelected = selectedSquare === square;
+                                    const squareColor = getSquareColor(file, rank);
+                                    
+                                    return (
+                                        <div
+                                            key={square}
+                                            className={`chess-square chess-square-${squareColor} ${
+                                                isSelected ? 'chess-square-selected' : ''
+                                            } hover:brightness-110`}
+                                            onClick={() => handleSquareClick(square)}
+                                        >
+                                            {piece && (
+                                                <div className="chess-piece">
+                                                    {pieceSymbols[piece.color][piece.type]}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        ReactDOM.render(<ChessGame />, document.getElementById('root'));
+    </script>
+</body>
+</html>

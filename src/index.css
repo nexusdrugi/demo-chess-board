@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  .chess-square {
+    @apply w-16 h-16 flex items-center justify-center cursor-pointer transition-all duration-200;
+  }
+  
+  .chess-square-light {
+    @apply bg-chess-light;
+  }
+  
+  .chess-square-dark {
+    @apply bg-chess-dark;
+  }
+  
+  .chess-square-selected {
+    @apply ring-4 ring-highlight-blue;
+  }
+  
+  .chess-square-valid-move {
+    @apply relative;
+  }
+  
+  .chess-square-valid-move::after {
+    @apply content-[''] absolute inset-0 bg-valid-move opacity-30 rounded-full m-4;
+  }
+  
+  .chess-piece {
+    @apply text-4xl select-none transition-transform duration-200 hover:scale-110;
+  }
+}

@@ -1,0 +1,197 @@
+# Modern Chess Game Web Client - Technical Architecture Document
+
+## 1. Architecture design
+
+```mermaid
+graph TD
+  A[User Browser] --> B[React Frontend Application]
+  B --> C[Chess Game Logic]
+  B --> D[UI Components]
+  B --> E[State Management]
+
+  subgraph "Frontend Layer"
+    B
+    C
+    D
+    E
+  end
+
+  subgraph "Browser APIs"
+    F[Local Storage]
+    G[Drag & Drop API]
+  end
+
+  B --> F
+  B --> G
+```
+
+## 2. Technology Description
+
+* Frontend: React\@18 + TypeScript\@5 + Vite\@5 + Tailwind CSS\@3
+
+* State Management: React Context API + useReducer
+
+* Chess Logic: Custom TypeScript implementation
+
+* Styling: Tailwind CSS with custom chess board components
+
+* Build Tool: Vite for fast development and optimized builds
+
+## 3. Route definitions
+
+| Route | Purpose                                      |
+| ----- | -------------------------------------------- |
+| /     | Main chess game page with board and controls |
+
+## 4. API definitions
+
+No backend APIs required for this demo application. All functionality is handled client-side.
+
+## 5. Server architecture diagram
+
+No server-side architecture required. This is a pure frontend application.
+
+## 6. Data model
+
+### 6.1 Data model definition
+
+```mermaid
+erDiagram
+  GAME_STATE {
+    string currentPlayer
+    array board
+    array moveHistory
+    string gameStatus
+    object selectedSquare
+    array validMoves
+  }
+  
+  PIECE {
+    string type
+    string color
+    string position
+    boolean hasMoved
+  }
+  
+  MOVE {
+    string from
+    string to
+    string piece
+    string notation
+    timestamp timestamp
+  }
+  
+  GAME_STATE ||--o{ PIECE : contains
+  GAME_STATE ||--o{ MOVE : tracks
+```
+
+### 6.2 Data Definition Language
+
+TypeScript interfaces for the chess game data structures:
+
+```typescript
+// Core game types
+type PieceType = 'pawn' | 'rook' | 'knight' | 'bishop' | 'queen' | 'king';
+type PieceColor = 'white' | 'black';
+type Square = string; // e.g., 'e4', 'a1'
+type GameStatus = 'active' | 'check' | 'checkmate' | 'stalemate' | 'draw';
+
+// Piece interface
+interface ChessPiece {
+  type: PieceType;
+  color: PieceColor;
+  hasMoved: boolean;
+}
+
+// Move interface
+interface Move {
+  from: Square;
+  to: Square;
+  piece: ChessPiece;
+  notation: string;
+  timestamp: Date;
+  captured?: ChessPiece;
+}
+
+// Board state (8x8 array)
+type Board = (ChessPiece | null)[][];
+
+// Game state interface
+interface GameState {
+  board: Board;
+  currentPlayer: PieceColor;
+  moveHistory: Move[];
+  gameStatus: GameStatus;
+  selectedSquare: Square | null;
+  validMoves: Square[];
+  isInCheck: boolean;
+}
+
+// Component props interfaces
+interface ChessBoardProps {
+  gameState: GameState;
+  onSquareClick: (square: Square) => void;
+  onPieceDrop: (from: Square, to: Square) => void;
+}
+
+interface ChessPieceProps {
+  piece: ChessPiece;
+  square: Square;
+  isSelected: boolean;
+  isValidMove: boolean;
+  onDragStart: (square: Square) => void;
+  onDragEnd: (from: Square, to: Square) => void;
+}
+
+interface GameControlsProps {
+  gameState: GameState;
+  onResetGame: () => void;
+  onUndoMove: () => void;
+}
+
+// Chess logic utility types
+interface MoveValidationResult {
+  isValid: boolean;
+  reason?: string;
+  wouldBeInCheck?: boolean;
+}
+
+interface SquareInfo {
+  file: string; // a-h
+  rank: number; // 1-8
+  color: 'light' | 'dark';
+  coordinates: [number, number]; // [row, col] in array
+}
+```
+
+### Component Architecture
+
+```typescript
+// Main application component structure
+interface ComponentHierarchy {
+  App: {
+    ChessGame: {
+      ChessBoard: {
+        ChessSquare: {
+          ChessPiece: {};
+        };
+      };
+      GameControls: {
+        MoveHistory: {};
+        GameStatus: {};
+        ActionButtons: {};
+      };
+    };
+  };
+}
+
+// State management actions
+type GameAction = 
+  | { type: 'SELECT_SQUARE'; square: Square }
+  | { type: 'MAKE_MOVE'; from: Square; to: Square }
+  | { type: 'RESET_GAME' }
+  | { type: 'UNDO_MOVE' }
+  | { type: 'SET_VALID_MOVES'; moves: Square[] }
+  | { type: 'UPDATE_GAME_STATUS'; status: GameStatus };
+```
+
