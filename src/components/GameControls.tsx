@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { GameControlsProps } from '../types/chess'
+import ConfirmationDialog from './ConfirmationDialog'
 
 const GameControls: React.FC<GameControlsProps> = ({
   gameState,
@@ -8,6 +9,14 @@ const GameControls: React.FC<GameControlsProps> = ({
   onRedoMove
 }) => {
   const winnerLabel = gameState.currentPlayer === 'white' ? '⚫ Black' : '⚪ White'
+  const [showResetDialog, setShowResetDialog] = useState(false)
+
+  const openReset = () => setShowResetDialog(true)
+  const handleConfirmReset = () => {
+    onResetGame()
+    setShowResetDialog(false)
+  }
+  const handleCancelReset = () => setShowResetDialog(false)
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
@@ -49,7 +58,7 @@ const GameControls: React.FC<GameControlsProps> = ({
       {/* Action Buttons */}
       <div className="mb-6 space-y-3">
         <button
-          onClick={onResetGame}
+          onClick={openReset}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
         >
           🔄 Reset Game
@@ -91,6 +100,15 @@ const GameControls: React.FC<GameControlsProps> = ({
           )}
         </div>
       </div>
+      <ConfirmationDialog
+        isOpen={showResetDialog}
+        title="Reset Game?"
+        message="This will clear the current board and move history and reset to the starting position."
+        confirmText="Reset Game"
+        cancelText="Cancel"
+        onConfirm={handleConfirmReset}
+        onCancel={handleCancelReset}
+      />
     </div>
   )
 }
