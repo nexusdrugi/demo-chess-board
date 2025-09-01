@@ -6,12 +6,14 @@ A fully functional chess game built with React, TypeScript, and Tailwind CSS. Fe
 
 - **Complete Chess Implementation**: All standard chess pieces with proper movement rules
 - **Drag & Drop Interface**: Intuitive piece movement using mouse drag and drop
-- **Move Validation**: Comprehensive validation for all piece types including:
-  - Pawn moves (including en passant)
+- **Move Validation**: Comprehensive validation for all piece types, with illegal moves filtered so your king is never left in check:
+  - Pawn moves
   - Rook, Bishop, Queen linear movements
   - Knight L-shaped moves
   - King single-square moves
-  - Castling support
+- **Endgame Detection**:
+  - Automatic detection of checkmate and stalemate
+  - "Check!" warning while the game is active
 - **Visual Feedback**: 
   - Highlighted selected pieces
   - Valid move indicators
@@ -89,24 +91,24 @@ src/
    - **Drag & Drop**: Drag the piece to a valid destination square
 3. **Valid Moves**: Valid destination squares are highlighted when a piece is selected
 4. **Turn System**: Players alternate turns (white moves first)
-5. **Game Controls**: Use the "New Game" button to restart
+5. **Game Controls**: Use the "Reset Game" button to restart; use "Undo Move" to revert the last move (disabled after the game ends)
 
 ## Game Rules Implemented
 
 - Standard chess piece movements
 - Turn-based gameplay
-- Basic move validation
+- Move validation that prevents leaving your king in check
+- Check alert while active and automatic endgame detection (checkmate, stalemate)
 - Piece capture mechanics
 - Visual feedback for valid moves
 
 ## Future Enhancements
 
 Potential features that could be added:
-- Check and checkmate detection
 - En passant capture
-- Castling
+- Castling moves
 - Pawn promotion
-- Game history and move notation
+- Enhanced game notation and export
 - AI opponent
 - Online multiplayer
 

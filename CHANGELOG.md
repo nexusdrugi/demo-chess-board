@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-09-01 - Endgame Detection
+
+### Added
+- Checkmate and stalemate detection via `isCheckmate`, `isStalemate`, and `hasAnyLegalMoves` (utils/moveValidation.ts).
+
+### Changed
+- hooks/useChessGame.ts now sets `gameStatus` automatically after each move and undo; `isInCheck` reflects the player to move.
+- components/GameControls.tsx displays explicit endgame messages and a "Check!" warning while active; disables Undo after the game ends.
+
+### Documentation
+- Updated README.md to reflect endgame detection and control behavior.
+
 ## 2025-09-01 - Documentation Accuracy Update
 
 ### Documentation
