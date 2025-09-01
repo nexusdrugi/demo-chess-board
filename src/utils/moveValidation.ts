@@ -1,4 +1,4 @@
-import { Board, ChessPiece, Square, PieceType } from '../types/chess'
+import { Board, ChessPiece, Square, PieceType, PieceColor } from '../types/chess'
 import {
   getCoordinatesFromSquare,
   getSquareFromCoordinates,
@@ -12,23 +12,33 @@ import {
 // Get all valid moves for a piece at a given square
 export const getValidMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
   if (!isValidSquare(square)) return []
-  
+
+  let moves: Square[] = []
   switch (piece.type) {
     case 'pawn':
-      return getPawnMoves(board, square, piece)
+      moves = getPawnMoves(board, square, piece)
+      break
     case 'rook':
-      return getRookMoves(board, square, piece)
+      moves = getRookMoves(board, square, piece)
+      break
     case 'knight':
-      return getKnightMoves(board, square, piece)
+      moves = getKnightMoves(board, square, piece)
+      break
     case 'bishop':
-      return getBishopMoves(board, square, piece)
+      moves = getBishopMoves(board, square, piece)
+      break
     case 'queen':
-      return getQueenMoves(board, square, piece)
+      moves = getQueenMoves(board, square, piece)
+      break
     case 'king':
-      return getKingMoves(board, square, piece)
+      moves = getKingMoves(board, square, piece)
+      break
     default:
-      return []
+      moves = []
   }
+
+  // Filter out moves that would leave own king in check
+  return moves.filter((to) => isMoveLegal(board, square, to, piece))
 }
 
 // Pawn movement logic
@@ -174,4 +184,66 @@ const getKingMoves = (board: Board, square: Square, piece: ChessPiece): Square[]
   }
   
   return moves
+}
+
+// Helper: locate king position for a given color
+export const findKingPosition = (board: Board, color: PieceColor): Square | null => {
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const cell = board[r][c]
+      if (cell && cell.type === 'king' && cell.color === color) {
+        return getSquareFromCoordinates(r, c)
+      }
+    }
+  }
+  return null
+}
+
+// Determine if a king of a given color is in check
+export const isKingInCheck = (board: Board, color: PieceColor, kingSquare?: Square | null): boolean => {
+  const kingPos = kingSquare ?? findKingPosition(board, color)
+  if (!kingPos) return false
+
+  // Scan opponent pieces and see if any attack the king square using pseudo-legal move generators
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const piece = board[r][c]
+      if (!piece || piece.color === color) continue
+      const from = getSquareFromCoordinates(r, c)
+      let attacks: Square[] = []
+      switch (piece.type) {
+        case 'pawn':
+          attacks = getPawnMoves(board, from, piece)
+          break
+        case 'rook':
+          attacks = getRookMoves(board, from, piece)
+          break
+        case 'knight':
+          attacks = getKnightMoves(board, from, piece)
+          break
+        case 'bishop':
+          attacks = getBishopMoves(board, from, piece)
+          break
+        case 'queen':
+          attacks = getQueenMoves(board, from, piece)
+          break
+        case 'king':
+          attacks = getKingMoves(board, from, piece)
+          break
+      }
+      if (attacks.includes(kingPos)) return true
+    }
+  }
+  return false
+}
+
+// Validate that making a move does not leave own king in check
+export const isMoveLegal = (board: Board, from: Square, to: Square, piece: ChessPiece): boolean => {
+  // Simulate the move on a shallow-cloned board
+  const temp: Board = board.map(row => row.map(cell => (cell ? { ...cell } : null)))
+  const [fromRow, fromCol] = getCoordinatesFromSquare(from)
+  const [toRow, toCol] = getCoordinatesFromSquare(to)
+  temp[toRow][toCol] = { ...piece }
+  temp[fromRow][fromCol] = null
+  return !isKingInCheck(temp, piece.color)
 }

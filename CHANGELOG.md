@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
   - components/ChessBoard.tsx: wrap board grid and file labels with ErrorBoundary.
 - Testing infrastructure and unit tests.
   - Added Vitest config and scripts; devDependencies include vitest, @vitest/ui, jsdom, and @testing-library/react.
-  - src/hooks/__tests__/useChessGame.test.ts: tests for undo behavior, captures, rook/king moves affecting castling rights, and restoration on undo.
+  - src/hooks/__tests__/useChessGame.test.ts: tests for undo behavior, captures, rook/king moves affecting castling rights, captured rook effects, and restoration on undo.
   - src/utils/__tests__/chessUtils.test.ts: tests for castling rights helpers and updates, including captured rook scenarios.
 
 ### Changed
@@ -25,4 +25,7 @@ All notable changes to this project will be documented in this file.
   - types: extended Move to store prevHasMoved, prevCapturedHasMoved, and prevCastlingRights; GameState now tracks castlingRights.
   - utils/chessUtils.ts: added createInitialCastlingRights, isKingMove, isRookMove, and updateCastlingRightsForMove(rights, piece, from, to, captured?) to disable castling when king/rook moves or a rook is captured on a1/h1/a8/h8.
   - hooks/useChessGame.ts: fixed UNDO bug to restore hasMoved and captured piece state; records previous states in move history and updates/restores castling rights accordingly.
+- Check detection and legal-move filtering.
+  - utils/moveValidation.ts: added findKingPosition, isKingInCheck, and isMoveLegal; getValidMoves now filters out moves that leave own king in check.
+  - hooks/useChessGame.ts: after MAKE_MOVE, sets isInCheck if opponent king is in check; after UNDO_MOVE, recomputes isInCheck for the next current player.
 

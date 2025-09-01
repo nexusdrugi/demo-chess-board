@@ -1,7 +1,7 @@
 import { useReducer, useCallback } from 'react'
 import { GameState, GameAction, Square, PieceColor, CastlingRights, Move } from '../types/chess'
 import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove } from '../utils/chessUtils'
-import { getValidMoves } from '../utils/moveValidation'
+import { getValidMoves, isKingInCheck } from '../utils/moveValidation'
 
 // Initial game state
 const initialGameState: GameState = {
@@ -88,14 +88,18 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         prevCastlingRights: state.castlingRights
       }
       
+      const mover = state.currentPlayer
+      const opponent = mover === 'white' ? 'black' : 'white'
+      const opponentInCheck = isKingInCheck(newBoard, opponent)
+
       return {
         ...state,
         board: newBoard,
-        currentPlayer: state.currentPlayer === 'white' ? 'black' : 'white',
+        currentPlayer: opponent,
         moveHistory: [...state.moveHistory, move],
         selectedSquare: null,
         validMoves: [],
-        isInCheck: false, // TODO: Implement check detection
+        isInCheck: opponentInCheck,
         castlingRights: nextCastlingRights
       }
     }
@@ -121,14 +125,17 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         newBoard[toRow][toCol] = null
       }
       
+      const nextCurrent = state.currentPlayer === 'white' ? 'black' : 'white'
+      const nextInCheck = isKingInCheck(newBoard, nextCurrent)
+
       return {
         ...state,
         board: newBoard,
-        currentPlayer: state.currentPlayer === 'white' ? 'black' : 'white',
+        currentPlayer: nextCurrent,
         moveHistory: state.moveHistory.slice(0, -1),
         selectedSquare: null,
         validMoves: [],
-        isInCheck: false,
+        isInCheck: nextInCheck,
         castlingRights: lastMove.prevCastlingRights
       }
     }
