@@ -2,7 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
-## 2025-09-01
+## 2025-09-01 - Documentation Accuracy Update
+
+### Documentation
+- Fixed critical inaccuracies in project documentation to reflect actual implementation:
+  - **WARP.md**: 
+    - Corrected statement that tests are not configured (tests ARE configured with Vitest)
+    - Updated move validation section to reflect that check detection IS fully implemented
+    - Added documentation for castling rights management functions
+    - Added ErrorBoundary component to interaction boundaries section
+    - Added input validation utilities documentation
+  - **Technical Architecture Document**:
+    - Added missing `CastlingRights` interface to type definitions
+    - Updated `Move` interface to include undo-related fields (`prevHasMoved`, `prevCapturedHasMoved`, `prevCastlingRights`)
+    - Updated `GameState` interface to include `castlingRights` field
+    - Added ErrorBoundary to component hierarchy
+    - Added new Testing Architecture section documenting Vitest setup
+    - Clarified that check detection is implemented (section 10)
+  - **Requirements Document**:
+    - Updated constraints section to clarify castling rights ARE tracked (but moves not implemented)
+    - Added checkmarks to show check detection requirements are met
+    - Added new Testing Requirements section
+
+## 2025-09-01 - Previous Updates
 
 ### Added
 - Comprehensive drag-and-drop input validation.

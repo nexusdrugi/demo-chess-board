@@ -92,13 +92,25 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - Move generation uses BOARD_SIZE consistently (e.g., rook/bishop ray lengths), and coordinate conversions use BOARD_SIZE.
 
 ## 8. Constraints & Out of Scope
-- Advanced rules (castling, en passant) remain out of scope for this iteration.
+- Castling rights are tracked and updated based on king/rook moves, but castling moves themselves are not yet implemented
+- En passant capture remains out of scope for this iteration
+- Pawn promotion is not yet implemented
 
-## 9. Check Detection Requirements
-- The system MUST prevent any move that leaves the moving side's king in check (self-check moves are illegal).
-- The system MUST set isInCheck to true when, after a move, the opponent's king is attacked; and recompute correctly after undo.
+## 9. Check Detection Requirements (Implemented)
+- The system MUST prevent any move that leaves the moving side's king in check (self-check moves are illegal). ✅
+- The system MUST set isInCheck to true when, after a move, the opponent's king is attacked; and recompute correctly after undo. ✅
 
 ### 9.1 Acceptance Criteria
-- getValidMoves returns only legal moves (self-check moves are filtered out).
-- After MAKE_MOVE, isInCheck reflects whether the opponent's king is in check in the resulting position.
-- After UNDO_MOVE, isInCheck is recalculated for the side to move and reflects the restored position accurately.
+- getValidMoves returns only legal moves (self-check moves are filtered out). ✅
+- After MAKE_MOVE, isInCheck reflects whether the opponent's king is in check in the resulting position. ✅
+- After UNDO_MOVE, isInCheck is recalculated for the side to move and reflects the restored position accurately. ✅
+
+## 10. Testing Requirements
+- Unit tests MUST be provided for core game logic
+- Test coverage includes:
+  - Move validation for all piece types
+  - Check detection algorithms
+  - Board state management
+  - Castling rights updates
+- Testing framework: Vitest with React Testing Library
+- Tests are located in `src/**/__tests__/` directories

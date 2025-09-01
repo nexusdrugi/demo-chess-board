@@ -103,6 +103,12 @@ interface ChessPiece {
   hasMoved: boolean;
 }
 
+// Castling rights interface
+interface CastlingRights {
+  white: { kingSide: boolean; queenSide: boolean };
+  black: { kingSide: boolean; queenSide: boolean };
+}
+
 // Move interface
 interface Move {
   from: Square;
@@ -111,6 +117,10 @@ interface Move {
   notation: string;
   timestamp: Date;
   captured?: ChessPiece;
+  // State tracking for proper undo functionality
+  prevHasMoved: boolean;
+  prevCapturedHasMoved?: boolean;
+  prevCastlingRights: CastlingRights;
 }
 
 // Board state (8x8 array)
@@ -125,6 +135,7 @@ interface GameState {
   selectedSquare: Square | null;
   validMoves: Square[];
   isInCheck: boolean;
+  castlingRights: CastlingRights;
 }
 
 // Component props interfaces
@@ -170,16 +181,18 @@ interface SquareInfo {
 // Main application component structure
 interface ComponentHierarchy {
   App: {
-    ChessGame: {
-      ChessBoard: {
-        ChessSquare: {
-          ChessPiece: {};
+    ErrorBoundary: {  // Error boundary wrapper for graceful error handling
+      ChessGame: {
+        ChessBoard: {
+          ChessSquare: {
+            ChessPiece: {};
+          };
         };
-      };
-      GameControls: {
-        MoveHistory: {};
-        GameStatus: {};
-        ActionButtons: {};
+        GameControls: {
+          MoveHistory: {};
+          GameStatus: {};
+          ActionButtons: {};
+        };
       };
     };
   };
@@ -195,7 +208,7 @@ type GameAction =
   | { type: 'UPDATE_GAME_STATUS'; status: GameStatus };
 ```
 
-## 10. Check Detection and Legal Move Filtering
+## 10. Check Detection and Legal Move Filtering (Implemented)
 
 - Move validation (utils/moveValidation.ts)
   - findKingPosition(board, color): locate the king square for a color.
@@ -205,4 +218,20 @@ type GameAction =
 - Game reducer (hooks/useChessGame.ts)
   - After MAKE_MOVE: computes opponent check state via isKingInCheck(newBoard, opponent) and sets gameState.isInCheck.
   - After UNDO_MOVE: recomputes isInCheck for the next current player based on the restored board.
+
+## 11. Testing Architecture
+
+- Testing framework: Vitest with React Testing Library
+- Test organization:
+  - Unit tests located in `src/**/__tests__/` directories
+  - Tests for hooks: `src/hooks/__tests__/useChessGame.test.ts`
+  - Tests for utilities: `src/utils/__tests__/chessUtils.test.ts`
+- Test commands:
+  - `npm test` - Run test suite in watch mode
+  - `npm run test:ui` - Open Vitest UI for interactive testing
+- Coverage includes:
+  - Chess utility functions (coordinate conversion, board initialization)
+  - Game state reducer logic
+  - Move validation and check detection
+  - Castling rights management
 
