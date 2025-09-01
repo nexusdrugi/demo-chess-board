@@ -215,11 +215,25 @@ type GameAction =
   - isKingInCheck(board, color, kingSquare?): determines if a king is attacked by scanning opponent pseudo-legal moves.
   - isMoveLegal(board, from, to, piece): simulates a move and returns false if it leaves own king in check.
   - getValidMoves(...) now filters out moves that would place own king in check.
+  - getKingMoves(...) includes full castling validation with safety checks.
 - Game reducer (hooks/useChessGame.ts)
   - After MAKE_MOVE: computes opponent check state via isKingInCheck(newBoard, opponent) and sets gameState.isInCheck.
   - After UNDO_MOVE: recomputes isInCheck for the next current player based on the restored board.
+  - Handles castling move execution by moving both king and rook.
+  - Supports castling move undo by restoring both pieces to original positions.
 
-## 11. Testing Architecture
+## 11. Castling Implementation (Implemented)
+
+- Full castling functionality for both king-side and queen-side castling
+- Castling validation includes:
+  - Castling rights verification (king and rook haven't moved)
+  - Path clearance validation (no pieces between king and rook)
+  - Safety validation (king not in check, doesn't move through check, doesn't end in check)
+- Castling execution automatically moves both king and rook to correct positions
+- Undo support properly restores both pieces
+- Standard Algebraic Notation support (O-O for king-side, O-O-O for queen-side)
+
+## 12. Testing Architecture
 
 - Testing framework: Vitest with React Testing Library
 - Test organization:

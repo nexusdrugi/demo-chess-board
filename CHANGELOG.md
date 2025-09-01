@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-01-22 - Castling Implementation
+
+### Added
+- Full castling functionality for both king-side and queen-side castling
+- Castling move validation in `getKingMoves` function with comprehensive checks:
+  - Castling rights verification (king and rook haven't moved)
+  - Path clearance validation (no pieces between king and rook)
+  - Safety validation (king not in check, doesn't move through check, doesn't end in check)
+- Castling move execution in game reducer:
+  - Automatic rook movement when king castles
+  - Proper castling rights updates
+  - Undo support for castling moves (restores both king and rook positions)
+- Standard Algebraic Notation support for castling (O-O for king-side, O-O-O for queen-side)
+
+### Changed
+- Updated `getKingMoves` function to accept `castlingRights` parameter
+- Enhanced `getValidMoves` function to pass castling rights to king move validation
+- Modified game reducer to handle castling move execution and undo operations
+
+### Documentation
+- Updated README.md to include castling in implemented features and game rules
+- Added castling instructions to "How to Play" section
+- Removed castling from "Future Enhancements" list
+
 ## 2025-09-01 - Confirmation Dialog UX & SSR Improvements
 
 ### Changed

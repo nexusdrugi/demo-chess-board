@@ -23,7 +23,7 @@ Our chess game requirements consist of the following main pages:
 | Game Board Page | Piece Positioning | Display all chess pieces in standard starting positions with distinct visual representations for each piece type |
 | Game Board Page | Move Interaction | Enable piece selection via click, highlight selected piece, show valid move squares when piece is selected |
 | Game Board Page | Drag and Drop | Allow pieces to be moved via drag-and-drop interface with visual feedback during dragging |
-| Game Board Page | Move Validation | Implement chess rules for each piece type (pawn, rook, bishop, knight, queen, king) and prevent invalid moves |
+| Game Board Page | Move Validation | Implement chess rules for each piece type (pawn, rook, bishop, knight, queen, king) including castling moves and prevent invalid moves |
 | Game Board Page | Turn Management | Alternate between white and black turns, display current player indicator |
 | Game Controls | Move History | Display list of moves made in algebraic notation with move numbers |
 | Game Controls | Game Reset | Provide button to reset board to starting position and clear move history |
@@ -92,7 +92,7 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - Move generation uses BOARD_SIZE consistently (e.g., rook/bishop ray lengths), and coordinate conversions use BOARD_SIZE.
 
 ## 8. Constraints & Out of Scope
-- Castling rights are tracked and updated based on king/rook moves, but castling moves themselves are not yet implemented
+- Castling moves are fully implemented with proper validation and execution ✅
 - En passant capture remains out of scope for this iteration
 - Pawn promotion is not yet implemented
 
