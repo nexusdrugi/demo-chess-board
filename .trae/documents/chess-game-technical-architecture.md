@@ -195,3 +195,14 @@ type GameAction =
   | { type: 'UPDATE_GAME_STATUS'; status: GameStatus };
 ```
 
+## 10. Check Detection and Legal Move Filtering
+
+- Move validation (utils/moveValidation.ts)
+  - findKingPosition(board, color): locate the king square for a color.
+  - isKingInCheck(board, color, kingSquare?): determines if a king is attacked by scanning opponent pseudo-legal moves.
+  - isMoveLegal(board, from, to, piece): simulates a move and returns false if it leaves own king in check.
+  - getValidMoves(...) now filters out moves that would place own king in check.
+- Game reducer (hooks/useChessGame.ts)
+  - After MAKE_MOVE: computes opponent check state via isKingInCheck(newBoard, opponent) and sets gameState.isInCheck.
+  - After UNDO_MOVE: recomputes isInCheck for the next current player based on the restored board.
+

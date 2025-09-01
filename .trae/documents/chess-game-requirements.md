@@ -92,4 +92,13 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - Move generation uses BOARD_SIZE consistently (e.g., rook/bishop ray lengths), and coordinate conversions use BOARD_SIZE.
 
 ## 8. Constraints & Out of Scope
-- Advanced rules (castling, en passant, check detection) remain out of scope for this iteration.
+- Advanced rules (castling, en passant) remain out of scope for this iteration.
+
+## 9. Check Detection Requirements
+- The system MUST prevent any move that leaves the moving side's king in check (self-check moves are illegal).
+- The system MUST set isInCheck to true when, after a move, the opponent's king is attacked; and recompute correctly after undo.
+
+### 9.1 Acceptance Criteria
+- getValidMoves returns only legal moves (self-check moves are filtered out).
+- After MAKE_MOVE, isInCheck reflects whether the opponent's king is in check in the resulting position.
+- After UNDO_MOVE, isInCheck is recalculated for the side to move and reflects the restored position accurately.
