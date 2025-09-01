@@ -1,6 +1,6 @@
 import { useReducer, useCallback } from 'react'
 import { GameState, GameAction, Square, PieceColor, CastlingRights, Move } from '../types/chess'
-import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove } from '../utils/chessUtils'
+import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove, generateAlgebraicNotation } from '../utils/chessUtils'
 import { getValidMoves, isKingInCheck, isCheckmate, isStalemate } from '../utils/moveValidation'
 
 // Initial game state
@@ -75,19 +75,6 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         capturedPiece || undefined
       )
       
-      // Create move record capturing previous states for undo
-      const move: Move = {
-        from,
-        to,
-        piece,
-        notation: `${piece.type}${to}`,
-        timestamp: new Date(),
-        captured: capturedPiece || undefined,
-        prevHasMoved: movedPiecePrevHasMoved,
-        prevCapturedHasMoved: capturedPrevHasMoved,
-        prevCastlingRights: state.castlingRights
-      }
-      
       const mover = state.currentPlayer
       const opponent = mover === 'white' ? 'black' : 'white'
       const opponentInCheck = isKingInCheck(newBoard, opponent)
@@ -99,6 +86,20 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           ? 'stalemate'
           : 'active'
       const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
+
+      // Create move record capturing previous states for undo with proper algebraic notation
+      const notation = generateAlgebraicNotation(newBoard, piece, from, to, capturedPiece || undefined, finalStatus)
+      const move: Move = {
+        from,
+        to,
+        piece,
+        notation,
+        timestamp: new Date(),
+        captured: capturedPiece || undefined,
+        prevHasMoved: movedPiecePrevHasMoved,
+        prevCapturedHasMoved: capturedPrevHasMoved,
+        prevCastlingRights: state.castlingRights
+      }
 
       return {
         ...state,
