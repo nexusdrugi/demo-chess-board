@@ -75,3 +75,21 @@ graph TD
 
 ### 4.3 Responsiveness
 Desktop-first design with mobile-adaptive layout. Touch interaction optimization for mobile devices including larger touch targets and gesture-based piece movement. Board scales proportionally on smaller screens while maintaining playability.
+
+## 5. Non-Functional Requirements
+- Robust input validation for drag-and-drop interactions; invalid data must be ignored with no side effects.
+- Graceful error handling via a UI error boundary showing a friendly fallback and a Reset option.
+- Client-side logging for invalid drag data and unexpected exceptions in DnD handlers.
+
+## 6. Maintainability
+- Eliminate magic numbers; use BOARD_SIZE for board dimensions and any related calculations.
+- Centralize validation utilities in utils/chessUtils.ts (isValidDragData, sanitizeSquareInput, isValidSquare).
+
+## 7. Acceptance Criteria
+- Invalid drag payloads or malformed squares are ignored; no move is dispatched.
+- Dropping onto the same square is prevented and does not alter state.
+- Errors within ChessBoard/ChessSquare/ChessPiece render or DnD logic do not crash the app; a fallback is displayed with Reset.
+- Move generation uses BOARD_SIZE consistently (e.g., rook/bishop ray lengths), and coordinate conversions use BOARD_SIZE.
+
+## 8. Constraints & Out of Scope
+- Advanced rules (castling, en passant, check detection) remain out of scope for this iteration.

@@ -1,6 +1,6 @@
 import React from 'react'
-import { ChessPieceProps } from '../types/chess'
-import { getPieceSymbol } from '../utils/chessUtils'
+import { ChessPieceProps, Square } from '../types/chess'
+import { getPieceSymbol, isValidSquare, sanitizeSquareInput } from '../utils/chessUtils'
 
 const ChessPiece: React.FC<ChessPieceProps> = ({
   piece,
@@ -11,8 +11,19 @@ const ChessPiece: React.FC<ChessPieceProps> = ({
   onDragEnd
 }) => {
   const handleDragStart = (e: React.DragEvent) => {
-    e.dataTransfer.setData('text/plain', square)
-    onDragStart(square)
+    try {
+      const sanitized = sanitizeSquareInput(square)
+      if (!sanitized || !isValidSquare(sanitized)) {
+        console.error('Invalid square on drag start:', square)
+        e.preventDefault()
+        return
+      }
+      e.dataTransfer.setData('text/plain', sanitized)
+      onDragStart(sanitized as Square)
+    } catch (err) {
+      console.error('Error during drag start:', err)
+      e.preventDefault()
+    }
   }
 
   const handleDragEnd = (e: React.DragEvent) => {

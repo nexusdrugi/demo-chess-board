@@ -1,6 +1,7 @@
 import React from 'react'
 import ChessPieceComponent from './ChessPiece'
 import { ChessPiece, Square } from '../types/chess'
+import { isValidSquare, isValidDragData } from '../utils/chessUtils'
 
 interface ChessSquareProps {
   square: Square
@@ -31,9 +32,24 @@ const ChessSquare: React.FC<ChessSquareProps> = ({
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
-    const fromSquare = e.dataTransfer.getData('text/plain')
-    if (fromSquare && fromSquare !== square) {
+    try {
+      const data = e.dataTransfer.getData('text/plain')
+      if (!isValidDragData(data)) {
+        console.error('Invalid drag data:', data)
+        return
+      }
+      const fromSquare = data as Square
+      if (!isValidSquare(fromSquare) || !isValidSquare(square)) {
+        console.error('Invalid square(s) in drop:', { fromSquare, toSquare: square })
+        return
+      }
+      if (fromSquare === square) {
+        // Prevent dropping onto the same square
+        return
+      }
       onPieceDrop(fromSquare, square)
+    } catch (err) {
+      console.error('Error handling drop event:', err)
     }
   }
 

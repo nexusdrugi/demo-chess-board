@@ -1,5 +1,8 @@
 import { PieceType, PieceColor, Square, ChessPiece, Board } from '../types/chess'
 
+// Board configuration
+export const BOARD_SIZE = 8
+
 // Get piece Unicode symbol
 export const getPieceSymbol = (type: PieceType, color: PieceColor): string => {
   const pieces = {
@@ -34,33 +37,33 @@ export const getCoordinatesFromSquare = (square: Square): [number, number] => {
   const file = square[0]
   const rank = parseInt(square[1])
   const col = file.charCodeAt(0) - 'a'.charCodeAt(0)
-  const row = 8 - rank
+  const row = BOARD_SIZE - rank
   return [row, col]
 }
 
 // Convert coordinates to square notation
 export const getSquareFromCoordinates = (row: number, col: number): Square => {
   const file = String.fromCharCode('a'.charCodeAt(0) + col)
-  const rank = 8 - row
+  const rank = BOARD_SIZE - row
   return `${file}${rank}`
 }
 
 // Create initial chess board
 export const createInitialBoard = (): Board => {
-  const board: Board = Array(8).fill(null).map(() => Array(8).fill(null))
+  const board: Board = Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null))
   
   // Place pawns
-  for (let col = 0; col < 8; col++) {
+  for (let col = 0; col < BOARD_SIZE; col++) {
     board[1][col] = { type: 'pawn', color: 'black', hasMoved: false }
-    board[6][col] = { type: 'pawn', color: 'white', hasMoved: false }
+    board[BOARD_SIZE - 2][col] = { type: 'pawn', color: 'white', hasMoved: false }
   }
   
   // Place other pieces
   const pieceOrder: PieceType[] = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook']
   
-  for (let col = 0; col < 8; col++) {
+  for (let col = 0; col < BOARD_SIZE; col++) {
     board[0][col] = { type: pieceOrder[col], color: 'black', hasMoved: false }
-    board[7][col] = { type: pieceOrder[col], color: 'white', hasMoved: false }
+    board[BOARD_SIZE - 1][col] = { type: pieceOrder[col], color: 'white', hasMoved: false }
   }
   
   return board
@@ -71,7 +74,23 @@ export const isValidSquare = (square: Square): boolean => {
   if (square.length !== 2) return false
   const file = square[0]
   const rank = parseInt(square[1])
-  return file >= 'a' && file <= 'h' && rank >= 1 && rank <= 8
+  const maxFile = String.fromCharCode('a'.charCodeAt(0) + (BOARD_SIZE - 1))
+  return file >= 'a' && file <= maxFile && rank >= 1 && rank <= BOARD_SIZE
+}
+
+// Validate drag data format (e.g., 'e2')
+export const isValidDragData = (data: string | null | undefined): boolean => {
+  if (typeof data !== 'string') return false
+  const value = data.trim().toLowerCase()
+  if (value.length !== 2) return false
+  return isValidSquare(value as Square)
+}
+
+// Sanitize and validate potential square input
+export const sanitizeSquareInput = (input: string | null | undefined): Square | null => {
+  if (typeof input !== 'string') return null
+  const value = input.trim().toLowerCase()
+  return isValidSquare(value as Square) ? (value as Square) : null
 }
 
 // Get piece at square

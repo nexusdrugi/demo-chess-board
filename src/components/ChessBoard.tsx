@@ -1,5 +1,6 @@
 import React from 'react'
 import ChessSquare from './ChessSquare'
+import ErrorBoundary from './ErrorBoundary'
 import { ChessBoardProps } from '../types/chess'
 import { getSquareColor, getSquareFromCoordinates } from '../utils/chessUtils'
 
@@ -25,39 +26,41 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
         
         {/* Chess board */}
         <div>
-          <div className="grid grid-cols-8 border-2 border-gray-700">
-            {ranks.map(rank =>
-              files.map(file => {
-                const square = `${file}${rank}`
-                const piece = gameState.board[8 - rank][files.indexOf(file)]
-                const isSelected = gameState.selectedSquare === square
-                const isValidMove = gameState.validMoves.includes(square)
-                const squareColor = getSquareColor(file, rank)
+          <ErrorBoundary>
+            <div className="grid grid-cols-8 border-2 border-gray-700">
+              {ranks.map(rank =>
+                files.map(file => {
+                  const square = `${file}${rank}`
+                  const piece = gameState.board[8 - rank][files.indexOf(file)]
+                  const isSelected = gameState.selectedSquare === square
+                  const isValidMove = gameState.validMoves.includes(square)
+                  const squareColor = getSquareColor(file, rank)
 
-                return (
-                  <ChessSquare
-                    key={square}
-                    square={square}
-                    piece={piece}
-                    isSelected={isSelected}
-                    isValidMove={isValidMove}
-                    squareColor={squareColor}
-                    onSquareClick={onSquareClick}
-                    onPieceDrop={onPieceDrop}
-                  />
-                )
-              })
-            )}
-          </div>
-          
-          {/* File labels (bottom) */}
-          <div className="flex mt-2">
-            {files.map(file => (
-              <div key={file} className="w-16 text-center text-gray-300 font-semibold">
-                {file}
-              </div>
-            ))}
-          </div>
+                  return (
+                    <ChessSquare
+                      key={square}
+                      square={square}
+                      piece={piece}
+                      isSelected={isSelected}
+                      isValidMove={isValidMove}
+                      squareColor={squareColor}
+                      onSquareClick={onSquareClick}
+                      onPieceDrop={onPieceDrop}
+                    />
+                  )
+                })
+              )}
+            </div>
+            
+            {/* File labels (bottom) */}
+            <div className="flex mt-2">
+              {files.map(file => (
+                <div key={file} className="w-16 text-center text-gray-300 font-semibold">
+                  {file}
+                </div>
+              ))}
+            </div>
+          </ErrorBoundary>
         </div>
       </div>
     </div>

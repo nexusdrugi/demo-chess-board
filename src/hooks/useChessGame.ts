@@ -1,6 +1,6 @@
 import { useReducer, useCallback } from 'react'
 import { GameState, GameAction, Square, PieceColor } from '../types/chess'
-import { createInitialBoard, getPieceAtSquare, isValidSquare } from '../utils/chessUtils'
+import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE } from '../utils/chessUtils'
 import { getValidMoves } from '../utils/moveValidation'
 
 // Initial game state
@@ -54,8 +54,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       // Create new board with the move
       const newBoard = state.board.map(row => [...row])
-      const [fromRow, fromCol] = [8 - parseInt(from[1]), from.charCodeAt(0) - 'a'.charCodeAt(0)]
-      const [toRow, toCol] = [8 - parseInt(to[1]), to.charCodeAt(0) - 'a'.charCodeAt(0)]
+      const [fromRow, fromCol] = [BOARD_SIZE - parseInt(from[1]), from.charCodeAt(0) - 'a'.charCodeAt(0)]
+      const [toRow, toCol] = [BOARD_SIZE - parseInt(to[1]), to.charCodeAt(0) - 'a'.charCodeAt(0)]
       
       const capturedPiece = newBoard[toRow][toCol]
       newBoard[toRow][toCol] = { ...piece, hasMoved: true }
@@ -91,8 +91,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const lastMove = state.moveHistory[state.moveHistory.length - 1]
       const newBoard = state.board.map(row => [...row])
       
-      const [fromRow, fromCol] = [8 - parseInt(lastMove.from[1]), lastMove.from.charCodeAt(0) - 'a'.charCodeAt(0)]
-      const [toRow, toCol] = [8 - parseInt(lastMove.to[1]), lastMove.to.charCodeAt(0) - 'a'.charCodeAt(0)]
+      const [fromRow, fromCol] = [BOARD_SIZE - parseInt(lastMove.from[1]), lastMove.from.charCodeAt(0) - 'a'.charCodeAt(0)]
+      const [toRow, toCol] = [BOARD_SIZE - parseInt(lastMove.to[1]), lastMove.to.charCodeAt(0) - 'a'.charCodeAt(0)]
       
       // Restore piece to original position
       newBoard[fromRow][fromCol] = { ...lastMove.piece, hasMoved: state.moveHistory.length > 1 }
@@ -136,7 +136,14 @@ export const useChessGame = () => {
   }, [])
   
   const handlePieceDrop = useCallback((from: Square, to: Square) => {
-    if (!isValidSquare(from) || !isValidSquare(to)) return
+    if (!isValidSquare(from) || !isValidSquare(to)) {
+      console.error('Invalid move attempt: invalid square format', { from, to })
+      return
+    }
+    if (from === to) {
+      console.error('Invalid move attempt: source and destination squares are the same', { from, to })
+      return
+    }
     dispatch({ type: 'MAKE_MOVE', from, to })
   }, [])
   

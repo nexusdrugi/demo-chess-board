@@ -5,7 +5,8 @@ import {
   isValidSquare,
   isEmptySquare,
   isOpponentPiece,
-  isOwnPiece
+  isOwnPiece,
+  BOARD_SIZE
 } from './chessUtils'
 
 // Get all valid moves for a piece at a given square
@@ -75,7 +76,7 @@ const getRookMoves = (board: Board, square: Square, piece: ChessPiece): Square[]
   const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]]
   
   for (const [dRow, dCol] of directions) {
-    for (let i = 1; i < 8; i++) {
+    for (let i = 1; i < BOARD_SIZE; i++) {
       const newSquare = getSquareFromCoordinates(row + i * dRow, col + i * dCol)
       
       if (!isValidSquare(newSquare)) break
@@ -125,7 +126,7 @@ const getBishopMoves = (board: Board, square: Square, piece: ChessPiece): Square
   const directions = [[1, 1], [1, -1], [-1, 1], [-1, -1]]
   
   for (const [dRow, dCol] of directions) {
-    for (let i = 1; i < 8; i++) {
+    for (let i = 1; i < BOARD_SIZE; i++) {
       const newSquare = getSquareFromCoordinates(row + i * dRow, col + i * dCol)
       
       if (!isValidSquare(newSquare)) break
