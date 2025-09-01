@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-09-01 - Confirmation Dialog UX & SSR Improvements
+
+### Changed
+- Remove global Enter-to-confirm; rely on focused button to avoid accidental or double confirmation.
+- Store dialog handlers in refs; main effect depends only on `isOpen` to prevent re-subscribe and focus flicker.
+- SSR-safe portal mount via `mounted` guard; return `null` on server or before mount.
+- Exit animation for smooth fade-out/scale, with delayed unmount to allow transition.
+
+### Chore
+- Move `ConfirmationDialogProps` from chess domain types to `src/types/ui.ts`.
+
 ## 2025-09-01 - Reset Confirmation & SAN Notation
 
 ### Added
