@@ -1,7 +1,7 @@
 import { useReducer, useCallback } from 'react'
 import { GameState, GameAction, Square, PieceColor, CastlingRights, Move } from '../types/chess'
 import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove } from '../utils/chessUtils'
-import { getValidMoves, isKingInCheck } from '../utils/moveValidation'
+import { getValidMoves, isKingInCheck, isCheckmate, isStalemate } from '../utils/moveValidation'
 
 // Initial game state
 const initialGameState: GameState = {
@@ -92,6 +92,14 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const opponent = mover === 'white' ? 'black' : 'white'
       const opponentInCheck = isKingInCheck(newBoard, opponent)
 
+      // Determine game status for the player to move (opponent)
+      const baseStatus = isCheckmate(newBoard, opponent)
+        ? 'checkmate'
+        : isStalemate(newBoard, opponent)
+          ? 'stalemate'
+          : 'active'
+      const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
+
       return {
         ...state,
         board: newBoard,
@@ -100,6 +108,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         selectedSquare: null,
         validMoves: [],
         isInCheck: opponentInCheck,
+        gameStatus: finalStatus,
         castlingRights: nextCastlingRights
       }
     }
@@ -127,6 +136,12 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       const nextCurrent = state.currentPlayer === 'white' ? 'black' : 'white'
       const nextInCheck = isKingInCheck(newBoard, nextCurrent)
+      const baseStatus = isCheckmate(newBoard, nextCurrent)
+        ? 'checkmate'
+        : isStalemate(newBoard, nextCurrent)
+          ? 'stalemate'
+          : 'active'
+      const finalStatus = baseStatus !== 'active' ? baseStatus : (nextInCheck ? 'check' : 'active')
 
       return {
         ...state,
@@ -136,6 +151,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         selectedSquare: null,
         validMoves: [],
         isInCheck: nextInCheck,
+        gameStatus: finalStatus,
         castlingRights: lastMove.prevCastlingRights
       }
     }

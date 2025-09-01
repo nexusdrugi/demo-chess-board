@@ -77,6 +77,18 @@ const getPawnMoves = (board: Board, square: Square, piece: ChessPiece): Square[]
   return moves
 }
 
+// Pawn attack generator (for check detection): diagonals only, occupancy-agnostic
+const getPawnAttacks = (board: Board, square: Square, piece: ChessPiece): Square[] => {
+  const attacks: Square[] = []
+  const [row, col] = getCoordinatesFromSquare(square)
+  const direction = piece.color === 'white' ? -1 : 1
+  const diagLeft = getSquareFromCoordinates(row + direction, col - 1)
+  const diagRight = getSquareFromCoordinates(row + direction, col + 1)
+  if (isValidSquare(diagLeft)) attacks.push(diagLeft)
+  if (isValidSquare(diagRight)) attacks.push(diagRight)
+  return attacks
+}
+
 // Rook movement logic
 const getRookMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
   const moves: Square[] = []
@@ -164,6 +176,8 @@ const getQueenMoves = (board: Board, square: Square, piece: ChessPiece): Square[
 }
 
 // King movement logic
+// Note: Castling moves are not implemented in this move generator.
+// Endgame detection (checkmate/stalemate) therefore ignores potential legal castling moves.
 const getKingMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
   const moves: Square[] = []
   const [row, col] = getCoordinatesFromSquare(square)
@@ -213,7 +227,7 @@ export const isKingInCheck = (board: Board, color: PieceColor, kingSquare?: Squa
       let attacks: Square[] = []
       switch (piece.type) {
         case 'pawn':
-          attacks = getPawnMoves(board, from, piece)
+          attacks = getPawnAttacks(board, from, piece)
           break
         case 'rook':
           attacks = getRookMoves(board, from, piece)
@@ -246,4 +260,30 @@ export const isMoveLegal = (board: Board, from: Square, to: Square, piece: Chess
   temp[toRow][toCol] = { ...piece }
   temp[fromRow][fromCol] = null
   return !isKingInCheck(temp, piece.color)
+}
+
+// New: determine if a player has any legal moves available
+export const hasAnyLegalMoves = (board: Board, color: PieceColor): boolean => {
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const piece = board[r][c]
+      if (!piece || piece.color !== color) continue
+      const from = getSquareFromCoordinates(r, c)
+      const moves = getValidMoves(board, from, piece)
+      if (moves.length > 0) return true
+    }
+  }
+  return false
+}
+
+// New: checkmate detection
+export const isCheckmate = (board: Board, color: PieceColor): boolean => {
+  if (!isKingInCheck(board, color)) return false
+  return !hasAnyLegalMoves(board, color)
+}
+
+// New: stalemate detection
+export const isStalemate = (board: Board, color: PieceColor): boolean => {
+  if (isKingInCheck(board, color)) return false
+  return !hasAnyLegalMoves(board, color)
 }

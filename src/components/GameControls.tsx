@@ -6,6 +6,8 @@ const GameControls: React.FC<GameControlsProps> = ({
   onResetGame,
   onUndoMove
 }) => {
+  const winnerLabel = gameState.currentPlayer === 'white' ? '⚫ Black' : '⚪ White'
+
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       {/* Game Status */}
@@ -22,15 +24,24 @@ const GameControls: React.FC<GameControlsProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Status:</span>
-            <span className="font-semibold capitalize text-blue-600">
-              {gameState.gameStatus}
-            </span>
+            {gameState.gameStatus === 'checkmate' ? (
+              <span className="font-semibold text-red-600">
+                ♟️ Checkmate — {winnerLabel} Wins!
+              </span>
+            ) : gameState.gameStatus === 'stalemate' ? (
+              <span className="font-semibold text-yellow-600">
+                🤝 Stalemate — Draw!
+              </span>
+            ) : gameState.gameStatus === 'check' ? (
+              <span className="font-semibold text-orange-600">
+                ⚠️ Check!
+              </span>
+            ) : (
+              <span className="font-semibold capitalize text-blue-600">
+                {gameState.gameStatus}
+              </span>
+            )}
           </div>
-          {gameState.isInCheck && (
-            <div className="text-red-600 font-semibold text-center">
-              ⚠️ Check!
-            </div>
-          )}
         </div>
       </div>
 
