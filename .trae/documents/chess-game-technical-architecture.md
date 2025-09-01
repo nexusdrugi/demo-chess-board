@@ -191,13 +191,25 @@ interface ComponentHierarchy {
           };
         };
         GameControls: {
-          MoveHistory: {};
-          GameStatus: {};
-          ActionButtons: {};
+          MoveHistory: {};  // Displays moves in Standard Algebraic Notation
+          GameStatus: {};   // Shows current player, check/checkmate/stalemate
+          ActionButtons: {}; // Reset (with confirmation) and Undo buttons
+          ConfirmationDialog: {}; // Modal for reset confirmation
         };
       };
     };
   };
+}
+
+// UI Component Types (from src/types/ui.ts)
+interface ConfirmationDialogProps {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
 }
 
 // State management actions
@@ -216,6 +228,7 @@ type GameAction =
 - Move validation (utils/moveValidation.ts)
   - findKingPosition(board, color): locate the king square for a color.
   - isKingInCheck(board, color, kingSquare?): determines if a king is attacked by scanning opponent pseudo-legal moves.
+  - getPawnAttacks(board, from, piece): special function for pawn diagonal attacks (used in check detection).
   - isMoveLegal(board, from, to, piece): simulates a move and returns false if it leaves own king in check.
   - getValidMoves(...) now filters out moves that would place own king in check.
   - getKingMoves(...) includes full castling validation with safety checks.
@@ -224,6 +237,7 @@ type GameAction =
   - After UNDO_MOVE: recomputes isInCheck for the next current player based on the restored board.
   - Handles castling move execution by moving both king and rook.
   - Supports castling move undo by restoring both pieces to original positions.
+  - Sets gameStatus to 'check' when player is in check but game continues.
 
 ## 11. Castling Implementation (Implemented)
 
@@ -269,4 +283,54 @@ type GameAction =
   - Game state reducer logic
   - Move validation and check detection
   - Castling rights management
+
+## 12. Endgame Detection (Implemented)
+
+- Checkmate and Stalemate Detection (utils/moveValidation.ts)
+  - hasAnyLegalMoves(board, color): checks if a player has any legal moves by scanning all pieces
+  - isCheckmate(board, color): returns true if player is in check AND has no legal moves
+  - isStalemate(board, color): returns true if player is NOT in check but has no legal moves
+- Game State Updates (hooks/useChessGame.ts)
+  - After each move, automatically detects endgame conditions
+  - Sets gameStatus to 'checkmate' when checkmate is detected
+  - Sets gameStatus to 'stalemate' when stalemate is detected
+  - Sets gameStatus to 'check' when king is in check but game continues
+  - Sets gameStatus to 'active' for normal play
+- UI Updates (components/GameControls.tsx)
+  - Displays "Checkmate - [Winner] Wins!" with winner announcement
+  - Displays "Stalemate - Draw!" for stalemate situations
+  - Displays "Check!" warning when king is under attack
+  - Undo remains enabled after game end to allow review of final position
+
+## 13. Standard Algebraic Notation (SAN) System (Implemented)
+
+- Move Notation Generation (utils/chessUtils.ts)
+  - generateAlgebraicNotation(board, piece, from, to, captured, gameStatus): creates standard chess notation
+  - Piece notation: K (King), Q (Queen), R (Rook), B (Bishop), N (Knight), pawns have no letter
+  - Disambiguation: adds file (a-h) or rank (1-8) when multiple pieces can make the same move
+  - Capture notation: uses 'x' for captures (e.g., "Bxe5", "exd4")
+  - Check/Checkmate: appends '+' for check, '#' for checkmate
+  - Special moves: "O-O" for kingside castling, "O-O-O" for queenside (when implemented)
+  - Future support for promotion (e.g., "e8=Q") and en passant (e.g., "exd6 e.p.")
+- Move History Display
+  - All moves shown in standard chess notation in GameControls
+  - Includes move numbers and from/to squares for clarity
+  - Professional chess notation for better game analysis
+
+## 14. User Experience Enhancements
+
+- Confirmation Dialogs (components/ConfirmationDialog.tsx)
+  - Reusable modal component for user confirmations
+  - Used for reset game confirmation to prevent accidental resets
+  - Accessible with keyboard navigation (Escape to cancel)
+  - Focus management for better accessibility
+  - Smooth animations with fade and scale effects
+- Reset Confirmation Flow
+  - Reset button opens confirmation dialog
+  - User must explicitly confirm to reset the game
+  - Prevents accidental loss of game progress
+- SSR-Safe Implementation
+  - Portal-based rendering for proper modal layering
+  - Guards against server-side rendering issues
+  - Graceful mounting/unmounting with animations
 

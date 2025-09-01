@@ -25,10 +25,9 @@ Our chess game requirements consist of the following main pages:
 | Game Board Page | Drag and Drop | Allow pieces to be moved via drag-and-drop interface with visual feedback during dragging |
 | Game Board Page | Move Validation | Implement chess rules for each piece type (pawn, rook, bishop, knight, queen, king) including castling moves and prevent invalid moves |
 | Game Board Page | Turn Management | Alternate between white and black turns, display current player indicator |
-| Game Controls | Move History | Display list of moves made in algebraic notation with move numbers |
-| Game Controls | Game Reset | Provide button to reset board to starting position and clear move history |
-| Game Controls | Undo/Redo | Provide buttons to undo previous moves and redo previously undone moves |
-| Game Controls | Status Display | Show game status (active, check, checkmate, stalemate) and current turn |
+| Game Controls | Move History | Display list of moves made in Standard Algebraic Notation (SAN) with move numbers, disambiguation, captures, and check indicators |
+| Game Controls | Game Reset | Provide button with confirmation dialog to reset board to starting position and clear move history |
+| Game Controls | Status Display | Show game status with visual indicators: "Check!" warning, "Checkmate - [Winner] Wins!", "Stalemate - Draw!", and current player turn |
 
 ## 3. Core Process
 The main user operation flow involves selecting pieces and making moves:
@@ -70,10 +69,9 @@ graph TD
 | Game Board Page | Piece Positioning | High-quality chess piece icons with smooth edges, consistent sizing, and clear piece differentiation |
 | Game Board Page | Move Interaction | Smooth hover effects, blue highlight for selected pieces, semi-transparent green dots for valid moves |
 | Game Board Page | Drag and Drop | Smooth dragging animation, piece follows cursor, drop zones highlighted during drag |
-| Game Controls | Move History | Scrollable panel with monospace font, alternating row colors, move numbering |
-| Game Controls | Game Reset | Prominent reset button with confirmation dialog, modern button styling |
-| Game Controls | Undo/Redo | Undo and Redo buttons with proper enable/disable states, consistent styling with other controls |
-| Game Controls | Status Display | Clear turn indicator with player colors, status messages in readable typography |
+| Game Controls | Move History | Scrollable panel with Standard Algebraic Notation, move numbers, and from/to square display |
+| Game Controls | Game Reset | Reset button that opens confirmation dialog to prevent accidental resets, with "Reset Game" and "Cancel" options |
+| Game Controls | Status Display | Dynamic status messages with color coding: red for checkmate, yellow for stalemate, orange for check, blue for active play |
 
 ### 4.3 Responsiveness
 Desktop-first design with mobile-adaptive layout. Touch interaction optimization for mobile devices including larger touch targets and gesture-based piece movement. Board scales proportionally on smaller screens while maintaining playability.
@@ -97,6 +95,7 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - Castling moves are fully implemented with proper validation and execution ✅
 - En passant capture remains out of scope for this iteration
 - Pawn promotion is not yet implemented
+- Note: Endgame detection (checkmate/stalemate) does not account for potential castling moves since they are not implemented
 
 ## 9. Check Detection Requirements (Implemented)
 - The system MUST prevent any move that leaves the moving side's king in check (self-check moves are illegal). ✅
@@ -107,7 +106,32 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - After MAKE_MOVE, isInCheck reflects whether the opponent's king is in check in the resulting position. ✅
 - After UNDO_MOVE, isInCheck is recalculated for the side to move and reflects the restored position accurately. ✅
 
-## 10. Testing Requirements
+## 10. Endgame Detection Requirements (Implemented)
+- The system MUST detect checkmate when a player's king is in check and has no legal moves. ✅
+- The system MUST detect stalemate when a player is not in check but has no legal moves. ✅
+- The system MUST display appropriate endgame messages with winner announcement or draw indication. ✅
+
+### 10.1 Acceptance Criteria
+- hasAnyLegalMoves() correctly identifies when a player has no valid moves. ✅
+- isCheckmate() returns true only when king is in check AND no legal moves exist. ✅
+- isStalemate() returns true only when king is NOT in check AND no legal moves exist. ✅
+- Game status updates automatically after each move to reflect endgame conditions. ✅
+- Undo functionality remains available after game end for position review. ✅
+
+## 11. Move Notation Requirements (Implemented)
+- Moves MUST be displayed in Standard Algebraic Notation (SAN). ✅
+- Notation MUST include piece letters (K, Q, R, B, N), except for pawns. ✅
+- Captures MUST be indicated with 'x' (e.g., "Bxe5", "exd4"). ✅
+- Check MUST be indicated with '+' and checkmate with '#'. ✅
+- Disambiguation MUST be used when multiple pieces can make the same move. ✅
+
+## 12. User Confirmation Requirements (Implemented)
+- Reset game action MUST show a confirmation dialog before clearing the board. ✅
+- Confirmation dialog MUST be accessible with keyboard navigation (Escape to cancel). ✅
+- Dialog MUST have clear "Reset Game" and "Cancel" options. ✅
+- Dialog MUST prevent accidental game resets through explicit confirmation. ✅
+
+## 13. Testing Requirements
 - Unit tests MUST be provided for core game logic
 - Test coverage includes:
   - Move validation for all piece types

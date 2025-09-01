@@ -34,14 +34,17 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
   - src/main.tsx mounts <App />; App renders <ChessGame /> as the main container
   - ChessGame composes:
     - ChessBoard: renders the 8x8 board grid, rank/file labels, highlights selection and valid moves
-    - GameControls: shows current player, status, move history; provides Reset and Undo actions
+    - GameControls: shows current player, endgame status (checkmate/stalemate/check), move history in SAN notation; provides Reset (with confirmation) and Undo actions
+    - ConfirmationDialog: reusable modal for reset confirmation with keyboard accessibility
 - State management and game logic
   - src/hooks/useChessGame.ts encapsulates all game state using useReducer
     - State: board (8×8), currentPlayer, moveHistory, gameStatus, selectedSquare, validMoves, isInCheck, castlingRights
     - Actions: SELECT_SQUARE, MAKE_MOVE, RESET_GAME, UNDO_MOVE, SET_VALID_MOVES, UPDATE_GAME_STATUS
     - Workflow: clicks or drops dispatch actions; reducer updates board and history, toggles player
     - Tracks castling rights and updates them based on king/rook moves
+    - Automatically detects and sets checkmate/stalemate/check status after each move
   - src/types/chess.ts defines core types (PieceType, PieceColor, Square, Board, GameState, Move, props interfaces)
+  - src/types/ui.ts defines UI component types (ConfirmationDialogProps)
 - Board representation and helpers
   - src/utils/chessUtils.ts
     - createInitialBoard(): sets up pieces and pawns with hasMoved = false
@@ -49,11 +52,14 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
     - getPieceSymbol(): maps type/color to Unicode chess glyphs used by the UI
     - Castling rights management: createInitialCastlingRights(), updateCastlingRightsForMove()
     - Input validation: isValidDragData(), sanitizeSquareInput() for robust drag-and-drop
-- Move validation (per piece)
+    - generateAlgebraicNotation(): creates Standard Algebraic Notation for moves with disambiguation, captures, check/checkmate indicators
+- Move validation and endgame detection
   - src/utils/moveValidation.ts
     - getValidMoves(board, square, piece): delegates to piece-specific generators and filters illegal moves
     - Implements pawn (forward + diagonal captures), rook, knight, bishop, queen, king movement
     - Check detection fully implemented: isKingInCheck() validates king safety, isMoveLegal() prevents self-check
+    - Endgame detection: hasAnyLegalMoves() checks for any valid moves, isCheckmate() and isStalemate() determine game end
+    - getPawnAttacks(): special function for pawn diagonal attacks used in check detection
     - Castling rights tracked and updated (actual castling moves not yet implemented)
     - En passant not implemented
 - Interaction boundaries and DnD
