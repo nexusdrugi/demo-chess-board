@@ -39,6 +39,7 @@ export interface GameState {
   board: Board;
   currentPlayer: PieceColor;
   moveHistory: Move[];
+  redoHistory: Move[];
   gameStatus: GameStatus;
   selectedSquare: Square | null;
   validMoves: Square[];
@@ -66,6 +67,7 @@ export interface GameControlsProps {
   gameState: GameState;
   onResetGame: () => void;
   onUndoMove: () => void;
+  onRedoMove: () => void;
 }
 
 
@@ -89,5 +91,6 @@ export type GameAction =
   | { type: 'MAKE_MOVE'; from: Square; to: Square }
   | { type: 'RESET_GAME' }
   | { type: 'UNDO_MOVE' }
+  | { type: 'REDO_MOVE' }
   | { type: 'SET_VALID_MOVES'; moves: Square[] }
   | { type: 'UPDATE_GAME_STATUS'; status: GameStatus };

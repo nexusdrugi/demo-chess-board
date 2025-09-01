@@ -27,6 +27,7 @@ Our chess game requirements consist of the following main pages:
 | Game Board Page | Turn Management | Alternate between white and black turns, display current player indicator |
 | Game Controls | Move History | Display list of moves made in algebraic notation with move numbers |
 | Game Controls | Game Reset | Provide button to reset board to starting position and clear move history |
+| Game Controls | Undo/Redo | Provide buttons to undo previous moves and redo previously undone moves |
 | Game Controls | Status Display | Show game status (active, check, checkmate, stalemate) and current turn |
 
 ## 3. Core Process
@@ -71,6 +72,7 @@ graph TD
 | Game Board Page | Drag and Drop | Smooth dragging animation, piece follows cursor, drop zones highlighted during drag |
 | Game Controls | Move History | Scrollable panel with monospace font, alternating row colors, move numbering |
 | Game Controls | Game Reset | Prominent reset button with confirmation dialog, modern button styling |
+| Game Controls | Undo/Redo | Undo and Redo buttons with proper enable/disable states, consistent styling with other controls |
 | Game Controls | Status Display | Clear turn indicator with player colors, status messages in readable typography |
 
 ### 4.3 Responsiveness

@@ -9,7 +9,8 @@ const ChessGame: React.FC = () => {
     handleSquareClick,
     handlePieceDrop,
     resetGame,
-    undoMove
+    undoMove,
+    redoMove
   } = useChessGame()
 
   return (
@@ -26,6 +27,7 @@ const ChessGame: React.FC = () => {
           gameState={gameState}
           onResetGame={resetGame}
           onUndoMove={undoMove}
+          onRedoMove={redoMove}
         />
       </div>
     </div>

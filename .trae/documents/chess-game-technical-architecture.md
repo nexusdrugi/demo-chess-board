@@ -131,6 +131,7 @@ interface GameState {
   board: Board;
   currentPlayer: PieceColor;
   moveHistory: Move[];
+  redoHistory: Move[]; // Tracks undone moves for redo functionality
   gameStatus: GameStatus;
   selectedSquare: Square | null;
   validMoves: Square[];
@@ -158,6 +159,7 @@ interface GameControlsProps {
   gameState: GameState;
   onResetGame: () => void;
   onUndoMove: () => void;
+  onRedoMove: () => void;
 }
 
 // Chess logic utility types
@@ -204,6 +206,7 @@ type GameAction =
   | { type: 'MAKE_MOVE'; from: Square; to: Square }
   | { type: 'RESET_GAME' }
   | { type: 'UNDO_MOVE' }
+  | { type: 'REDO_MOVE' }
   | { type: 'SET_VALID_MOVES'; moves: Square[] }
   | { type: 'UPDATE_GAME_STATUS'; status: GameStatus };
 ```
@@ -233,7 +236,25 @@ type GameAction =
 - Undo support properly restores both pieces
 - Standard Algebraic Notation support (O-O for king-side, O-O-O for queen-side)
 
-## 12. Testing Architecture
+## 12. Redo Functionality Implementation (Implemented)
+
+- Complete redo functionality to restore previously undone moves
+- State management:
+  - `redoHistory` array in GameState tracks undone moves
+  - `REDO_MOVE` action restores moves with full state restoration
+  - `UNDO_MOVE` action pushes moves to redoHistory
+  - `MAKE_MOVE` action clears redoHistory when new moves are made
+- UI integration:
+  - Redo button in GameControls component
+  - Proper enable/disable logic based on redoHistory availability
+- State restoration includes:
+  - Board position restoration
+  - Captured pieces restoration
+  - Move history management
+  - Castling rights restoration
+  - Turn management
+
+## 13. Testing Architecture
 
 - Testing framework: Vitest with React Testing Library
 - Test organization:

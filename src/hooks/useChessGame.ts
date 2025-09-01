@@ -8,6 +8,7 @@ const initialGameState: GameState = {
   board: createInitialBoard(),
   currentPlayer: 'white',
   moveHistory: [],
+  redoHistory: [],
   gameStatus: 'active',
   selectedSquare: null,
   validMoves: [],
@@ -122,6 +123,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         board: newBoard,
         currentPlayer: opponent,
         moveHistory: [...state.moveHistory, move],
+        redoHistory: [], // Clear redo history when making a new move
         selectedSquare: null,
         validMoves: [],
         isInCheck: opponentInCheck,
@@ -182,11 +184,76 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         board: newBoard,
         currentPlayer: nextCurrent,
         moveHistory: state.moveHistory.slice(0, -1),
+        redoHistory: [...state.redoHistory, lastMove],
         selectedSquare: null,
         validMoves: [],
         isInCheck: nextInCheck,
         gameStatus: finalStatus,
         castlingRights: lastMove.prevCastlingRights
+      }
+    }
+    
+    case 'REDO_MOVE': {
+      if (state.redoHistory.length === 0) return state
+      
+      const moveToRedo = state.redoHistory[state.redoHistory.length - 1]
+      const newBoard = state.board.map(row => [...row])
+      
+      const [fromRow, fromCol] = [BOARD_SIZE - parseInt(moveToRedo.from[1]), moveToRedo.from.charCodeAt(0) - 'a'.charCodeAt(0)]
+      const [toRow, toCol] = [BOARD_SIZE - parseInt(moveToRedo.to[1]), moveToRedo.to.charCodeAt(0) - 'a'.charCodeAt(0)]
+      
+      // Check if this is a castling move
+      const isCastling = moveToRedo.piece.type === 'king' && Math.abs(toCol - fromCol) === 2
+      
+      // Apply the move
+      newBoard[toRow][toCol] = { ...moveToRedo.piece, hasMoved: true }
+      newBoard[fromRow][fromCol] = null
+      
+      // Handle castling: move the rook as well
+      if (isCastling) {
+        const isKingSide = toCol > fromCol
+        const rookFromCol = isKingSide ? 7 : 0 // h-file or a-file
+        const rookToCol = isKingSide ? 5 : 3   // f-file or d-file
+        
+        const rook = newBoard[fromRow][rookFromCol]
+        if (rook) {
+          newBoard[fromRow][rookToCol] = { ...rook, hasMoved: true }
+          newBoard[fromRow][rookFromCol] = null
+        }
+      }
+      
+      const mover = state.currentPlayer
+      const opponent = mover === 'white' ? 'black' : 'white'
+      const opponentInCheck = isKingInCheck(newBoard, opponent)
+      
+      // Determine game status for the player to move (opponent)
+      const baseStatus = isCheckmate(newBoard, opponent)
+        ? 'checkmate'
+        : isStalemate(newBoard, opponent)
+          ? 'stalemate'
+          : 'active'
+      const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
+      
+      // Update castling rights based on the redone move
+      const nextCastlingRights = updateCastlingRightsForMove(
+        state.castlingRights,
+        moveToRedo.piece,
+        moveToRedo.from,
+        moveToRedo.to,
+        moveToRedo.captured
+      )
+      
+      return {
+        ...state,
+        board: newBoard,
+        currentPlayer: opponent,
+        moveHistory: [...state.moveHistory, moveToRedo],
+        redoHistory: state.redoHistory.slice(0, -1),
+        selectedSquare: null,
+        validMoves: [],
+        isInCheck: opponentInCheck,
+        gameStatus: finalStatus,
+        castlingRights: nextCastlingRights
       }
     }
     
@@ -236,11 +303,16 @@ export const useChessGame = () => {
     dispatch({ type: 'UNDO_MOVE' })
   }, [])
   
+  const redoMove = useCallback(() => {
+    dispatch({ type: 'REDO_MOVE' })
+  }, [])
+  
   return {
     gameState,
     handleSquareClick,
     handlePieceDrop,
     resetGame,
-    undoMove
+    undoMove,
+    redoMove
   }
 }

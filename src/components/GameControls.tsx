@@ -4,7 +4,8 @@ import { GameControlsProps } from '../types/chess'
 const GameControls: React.FC<GameControlsProps> = ({
   gameState,
   onResetGame,
-  onUndoMove
+  onUndoMove,
+  onRedoMove
 }) => {
   const winnerLabel = gameState.currentPlayer === 'white' ? '⚫ Black' : '⚪ White'
 
@@ -59,6 +60,13 @@ const GameControls: React.FC<GameControlsProps> = ({
           className="w-full bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
         >
           ↶ Undo Move
+        </button>
+        <button
+          onClick={onRedoMove}
+          disabled={gameState.redoHistory.length === 0}
+          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+        >
+          ↷ Redo Move
         </button>
       </div>
 

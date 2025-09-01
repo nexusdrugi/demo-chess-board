@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-01-22 - Redo Functionality Implementation
+
+### Added
+- Complete redo functionality to restore previously undone moves
+- `redoHistory` state management in GameState to track undone moves
+- `REDO_MOVE` action in game reducer for restoring moves with full state restoration
+- Redo button in GameControls component with proper enable/disable logic
+- State restoration includes board position, captured pieces, move history, castling rights, and turn management
+
+### Changed
+- Enhanced `UNDO_MOVE` action to push undone moves to `redoHistory` array
+- Modified `MAKE_MOVE` action to clear `redoHistory` when new moves are made
+- Updated GameControls UI to include Redo button alongside existing Undo and Reset buttons
+
+### Documentation
+- Updated README.md to include redo functionality in Game Controls and How to Play sections
+
 ## 2025-01-22 - Castling Implementation
 
 ### Added

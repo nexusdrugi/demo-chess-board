@@ -23,6 +23,7 @@ A fully functional chess game built with React, TypeScript, and Tailwind CSS. Fe
 - **Game Controls**:
   - Prominent Reset button with confirmation dialog
   - Undo move support (even after game end)
+  - Redo move support to restore previously undone moves
 - **Game State Management**: Turn-based gameplay with proper state tracking
 - **Responsive Design**: Clean, modern UI that works on different screen sizes
 
@@ -100,7 +101,7 @@ src/
    - **Queen-side Castling**: Move the king two squares toward the rook on the queen's side
    - **Requirements**: King and rook must not have moved, no pieces between them, king not in check, and king doesn't move through or into check
 5. **Turn System**: Players alternate turns (white moves first)
-6. **Game Controls**: Use the "Reset Game" button to restart (you'll be asked to confirm); use "Undo Move" to revert the last move.
+6. **Game Controls**: Use the "Reset Game" button to restart (you'll be asked to confirm); use "Undo Move" to revert the last move; use "Redo Move" to restore a previously undone move.
 
 ## Game Rules Implemented
 
