@@ -1,6 +1,6 @@
 import { useReducer, useCallback } from 'react'
-import { GameState, GameAction, Square, PieceColor } from '../types/chess'
-import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE } from '../utils/chessUtils'
+import { GameState, GameAction, Square, PieceColor, CastlingRights, Move } from '../types/chess'
+import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove } from '../utils/chessUtils'
 import { getValidMoves } from '../utils/moveValidation'
 
 // Initial game state
@@ -11,7 +11,8 @@ const initialGameState: GameState = {
   gameStatus: 'active',
   selectedSquare: null,
   validMoves: [],
-  isInCheck: false
+  isInCheck: false,
+  castlingRights: createInitialCastlingRights()
 }
 
 // Game state reducer
@@ -58,17 +59,33 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const [toRow, toCol] = [BOARD_SIZE - parseInt(to[1]), to.charCodeAt(0) - 'a'.charCodeAt(0)]
       
       const capturedPiece = newBoard[toRow][toCol]
+      const movedPiecePrevHasMoved = piece.hasMoved
+      const capturedPrevHasMoved = capturedPiece ? capturedPiece.hasMoved : undefined
+
+      // Update board state
       newBoard[toRow][toCol] = { ...piece, hasMoved: true }
       newBoard[fromRow][fromCol] = null
+
+      // Update castling rights based on this move (including captured rook handling)
+      const nextCastlingRights = updateCastlingRightsForMove(
+        state.castlingRights,
+        piece,
+        from,
+        to,
+        capturedPiece || undefined
+      )
       
-      // Create move record
-      const move = {
+      // Create move record capturing previous states for undo
+      const move: Move = {
         from,
         to,
         piece,
         notation: `${piece.type}${to}`,
         timestamp: new Date(),
-        captured: capturedPiece || undefined
+        captured: capturedPiece || undefined,
+        prevHasMoved: movedPiecePrevHasMoved,
+        prevCapturedHasMoved: capturedPrevHasMoved,
+        prevCastlingRights: state.castlingRights
       }
       
       return {
@@ -78,7 +95,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         moveHistory: [...state.moveHistory, move],
         selectedSquare: null,
         validMoves: [],
-        isInCheck: false // TODO: Implement check detection
+        isInCheck: false, // TODO: Implement check detection
+        castlingRights: nextCastlingRights
       }
     }
     
@@ -94,9 +112,14 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const [fromRow, fromCol] = [BOARD_SIZE - parseInt(lastMove.from[1]), lastMove.from.charCodeAt(0) - 'a'.charCodeAt(0)]
       const [toRow, toCol] = [BOARD_SIZE - parseInt(lastMove.to[1]), lastMove.to.charCodeAt(0) - 'a'.charCodeAt(0)]
       
-      // Restore piece to original position
-      newBoard[fromRow][fromCol] = { ...lastMove.piece, hasMoved: state.moveHistory.length > 1 }
-      newBoard[toRow][toCol] = lastMove.captured || null
+      // Restore piece to original position with previous hasMoved state
+      newBoard[fromRow][fromCol] = { ...lastMove.piece, hasMoved: lastMove.prevHasMoved }
+      // Restore captured piece (if any) with its previous hasMoved state
+      if (lastMove.captured) {
+        newBoard[toRow][toCol] = { ...lastMove.captured, hasMoved: lastMove.prevCapturedHasMoved ?? lastMove.captured.hasMoved }
+      } else {
+        newBoard[toRow][toCol] = null
+      }
       
       return {
         ...state,
@@ -105,7 +128,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         moveHistory: state.moveHistory.slice(0, -1),
         selectedSquare: null,
         validMoves: [],
-        isInCheck: false
+        isInCheck: false,
+        castlingRights: lastMove.prevCastlingRights
       }
     }
     

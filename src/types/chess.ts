@@ -11,6 +11,12 @@ export interface ChessPiece {
   hasMoved: boolean;
 }
 
+// Castling rights
+export interface CastlingRights {
+  white: { kingSide: boolean; queenSide: boolean };
+  black: { kingSide: boolean; queenSide: boolean };
+}
+
 // Move interface
 export interface Move {
   from: Square;
@@ -19,6 +25,10 @@ export interface Move {
   notation: string;
   timestamp: Date;
   captured?: ChessPiece;
+  // State before the move (for correct undo)
+  prevHasMoved: boolean;
+  prevCapturedHasMoved?: boolean;
+  prevCastlingRights: CastlingRights;
 }
 
 // Board state (8x8 array)
@@ -33,6 +43,7 @@ export interface GameState {
   selectedSquare: Square | null;
   validMoves: Square[];
   isInCheck: boolean;
+  castlingRights: CastlingRights;
 }
 
 // Component props interfaces

@@ -1,4 +1,4 @@
-import { PieceType, PieceColor, Square, ChessPiece, Board } from '../types/chess'
+import { PieceType, PieceColor, Square, ChessPiece, Board, CastlingRights } from '../types/chess'
 
 // Board configuration
 export const BOARD_SIZE = 8
@@ -115,4 +115,58 @@ export const isOwnPiece = (board: Board, square: Square, playerColor: PieceColor
 // Check if square is empty
 export const isEmptySquare = (board: Board, square: Square): boolean => {
   return getPieceAtSquare(board, square) === null
+}
+
+// Castling helpers and rights management
+export const createInitialCastlingRights = (): CastlingRights => ({
+  white: { kingSide: true, queenSide: true },
+  black: { kingSide: true, queenSide: true }
+})
+
+export const isKingMove = (piece: ChessPiece | null): boolean => piece?.type === 'king'
+export const isRookMove = (piece: ChessPiece | null): boolean => piece?.type === 'rook'
+
+// Update castling rights based on a move (king moves disable both sides; rook moves disable side from original corner)
+export const updateCastlingRightsForMove = (
+  rights: CastlingRights,
+  piece: ChessPiece | null,
+  from: Square,
+  to: Square,
+  captured?: ChessPiece | null
+): CastlingRights => {
+  const next: CastlingRights = {
+    white: { ...rights.white },
+    black: { ...rights.black }
+  }
+
+  if (!piece) return next
+
+  if (isKingMove(piece)) {
+    if (piece.color === 'white') {
+      next.white.kingSide = false
+      next.white.queenSide = false
+    } else {
+      next.black.kingSide = false
+      next.black.queenSide = false
+    }
+  } else if (isRookMove(piece)) {
+    // Disable the side corresponding to the rook's starting file
+    if (piece.color === 'white') {
+      if (from === 'h1') next.white.kingSide = false
+      if (from === 'a1') next.white.queenSide = false
+    } else {
+      if (from === 'h8') next.black.kingSide = false
+      if (from === 'a8') next.black.queenSide = false
+    }
+  }
+
+  // Captured rook disables opponent's corresponding side based on the destination square
+  if (captured?.type === 'rook') {
+    if (to === 'a1') next.white.queenSide = false
+    if (to === 'h1') next.white.kingSide = false
+    if (to === 'a8') next.black.queenSide = false
+    if (to === 'h8') next.black.kingSide = false
+  }
+
+  return next
 }
