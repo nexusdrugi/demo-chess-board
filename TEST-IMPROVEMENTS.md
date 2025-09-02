@@ -198,11 +198,11 @@ it('adds disambiguation by file when two knights can reach the same square', () 
 - [x] Add hook tests for castling execution + SAN (`O-O`/`O-O-O`) + undo/redo
 - [x] Add hook test: redoHistory is cleared when new move is made after undo
 - [ ] Add SAN tests: castling, disambiguation, check (`+`)/checkmate (`#`), pawn capture (exd5), promotion with capture (exd8=Q)
-- [ ] Add UI tests: 
-      - [ ] GameControls (status display, Undo/Redo enablement, move history, Reset flow)
-      - [ ] ConfirmationDialog (confirm/cancel/Esc, focus behavior)
+- [ ] UI tests: 
+      - [x] GameControls (status display, Undo/Redo enablement, move history, Reset flow)
+      - [x] ConfirmationDialog (confirm/cancel/Esc, focus behavior)
       - [ ] ChessSquare/ChessPiece DnD (valid drop triggers onPieceDrop; invalid drag ignored)
-      - [ ] ErrorBoundary fallback + Reset recovery
+      - [x] ErrorBoundary fallback + Reset recovery
 - [ ] Extract/centralize common test helpers for board setups
 - [ ] Add Vitest coverage thresholds (e.g., statements 80%, branches 70%)
 - [ ] Integrate Codecov (or Coveralls) and add a README badge (optional)
