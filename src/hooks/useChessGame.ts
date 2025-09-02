@@ -14,7 +14,8 @@ export const initialGameState: GameState = {
   validMoves: [],
   isInCheck: false,
   castlingRights: createInitialCastlingRights(),
-  enPassantTarget: null
+  enPassantTarget: null,
+  pendingPromotion: null
 }
 
 // Game state reducer
@@ -53,6 +54,19 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       if (!piece || !state.validMoves.includes(to)) {
         return state
+      }
+
+      // Check for promotion candidate: pawn reaching back rank
+      const toRank = parseInt(to[1])
+      const willPromote = piece.type === 'pawn' && ((piece.color === 'white' && toRank === 8) || (piece.color === 'black' && toRank === 1))
+      if (willPromote) {
+        // Request promotion instead of finalizing the move now
+        return {
+          ...state,
+          pendingPromotion: { from, to, color: piece.color },
+          // Keep selection on from square for clarity
+          selectedSquare: from,
+        }
       }
       
       // Create new board with the move
@@ -160,6 +174,95 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       }
     }
     
+    case 'REQUEST_PROMOTION': {
+      const { from, to, color } = action
+      // Allow UI to request promotion explicitly (optional entrypoint)
+      return {
+        ...state,
+        pendingPromotion: { from, to, color },
+      }
+    }
+
+    case 'COMPLETE_PROMOTION': {
+      const pp = state.pendingPromotion
+      if (!pp) return state
+      const promoPieceType = action.piece
+      // Execute the move with promotion
+      const newBoard = state.board.map(row => [...row])
+      const [fromRow, fromCol] = [BOARD_SIZE - parseInt(pp.from[1]), pp.from.charCodeAt(0) - 'a'.charCodeAt(0)]
+      const [toRow, toCol] = [BOARD_SIZE - parseInt(pp.to[1]), pp.to.charCodeAt(0) - 'a'.charCodeAt(0)]
+      const piece = getPieceAtSquare(state.board, pp.from)
+      if (!piece) return { ...state, pendingPromotion: null }
+
+      const capturedPiece = newBoard[toRow][toCol]
+      const movedPiecePrevHasMoved = piece.hasMoved
+      const capturedPrevHasMoved = capturedPiece ? capturedPiece.hasMoved : undefined
+
+      // Place promoted piece on destination
+      newBoard[toRow][toCol] = { type: promoPieceType, color: piece.color, hasMoved: true }
+      newBoard[fromRow][fromCol] = null
+
+      // En passant target after promotion: none
+      const nextCastlingRights = updateCastlingRightsForMove(
+        state.castlingRights,
+        { type: promoPieceType, color: piece.color, hasMoved: true },
+        pp.from,
+        pp.to,
+        capturedPiece
+      )
+
+      const mover = state.currentPlayer
+      const opponent = mover === 'white' ? 'black' : 'white'
+      const opponentInCheck = isKingInCheck(newBoard, opponent)
+      const baseStatus = isCheckmate(newBoard, opponent)
+        ? 'checkmate'
+        : isStalemate(newBoard, opponent)
+          ? 'stalemate'
+          : 'active'
+      const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
+
+      const move: Move = {
+        from: pp.from,
+        to: pp.to,
+        piece,
+        notation: '',
+        timestamp: new Date(),
+        captured: capturedPiece || undefined,
+        prevHasMoved: movedPiecePrevHasMoved,
+        prevCapturedHasMoved: capturedPrevHasMoved,
+        prevCastlingRights: state.castlingRights,
+        prevEnPassantTarget: state.enPassantTarget,
+        promotion: promoPieceType
+      }
+      const notation = generateAlgebraicNotation(state.board, move, finalStatus)
+      move.notation = notation
+
+      return {
+        ...state,
+        board: newBoard,
+        currentPlayer: opponent,
+        moveHistory: [...state.moveHistory, move],
+        redoHistory: [],
+        selectedSquare: null,
+        validMoves: [],
+        isInCheck: opponentInCheck,
+        gameStatus: finalStatus,
+        castlingRights: nextCastlingRights,
+        enPassantTarget: null,
+        pendingPromotion: null,
+      }
+    }
+
+    case 'CANCEL_PROMOTION': {
+      return {
+        ...state,
+        pendingPromotion: null,
+        // Clear any selection/valid moves to reduce confusion
+        selectedSquare: null,
+        validMoves: [],
+      }
+    }
+
     case 'RESET_GAME':
       return initialGameState
     
@@ -247,6 +350,11 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       // Apply the move
       newBoard[toRow][toCol] = { ...moveToRedo.piece, hasMoved: true }
       newBoard[fromRow][fromCol] = null
+
+      // Handle promotion redo: replace piece type at destination
+      if (moveToRedo.promotion) {
+        newBoard[toRow][toCol] = { type: moveToRedo.promotion, color: moveToRedo.piece.color, hasMoved: true }
+      }
       
       // Handle en passant redo
       if (moveToRedo.isEnPassant && moveToRedo.enPassantCaptureSquare) {
@@ -360,6 +468,14 @@ export const useChessGame = (initialState: GameState = initialGameState) => {
   const redoMove = useCallback(() => {
     dispatch({ type: 'REDO_MOVE' })
   }, [])
+
+  const completePromotion = useCallback((piece: 'queen' | 'rook' | 'bishop' | 'knight') => {
+    dispatch({ type: 'COMPLETE_PROMOTION', piece })
+  }, [])
+
+  const cancelPromotion = useCallback(() => {
+    dispatch({ type: 'CANCEL_PROMOTION' })
+  }, [])
   
   return {
     gameState,
@@ -367,6 +483,8 @@ export const useChessGame = (initialState: GameState = initialGameState) => {
     handlePieceDrop,
     resetGame,
     undoMove,
-    redoMove
+    redoMove,
+    completePromotion,
+    cancelPromotion,
   }
 }

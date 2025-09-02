@@ -41,6 +41,12 @@ export interface Move {
 export type Board = (ChessPiece | null)[][];
 
 // Game state interface
+export interface PendingPromotion {
+  from: Square;
+  to: Square;
+  color: PieceColor;
+}
+
 export interface GameState {
   board: Board;
   currentPlayer: PieceColor;
@@ -52,6 +58,7 @@ export interface GameState {
   isInCheck: boolean;
   castlingRights: CastlingRights;
   enPassantTarget: Square | null; // Target square for en passant capture
+  pendingPromotion?: PendingPromotion | null;
 }
 
 // Component props interfaces
@@ -96,6 +103,9 @@ export interface SquareInfo {
 export type GameAction = 
   | { type: 'SELECT_SQUARE'; square: Square }
   | { type: 'MAKE_MOVE'; from: Square; to: Square }
+  | { type: 'REQUEST_PROMOTION'; from: Square; to: Square; color: PieceColor }
+  | { type: 'COMPLETE_PROMOTION'; piece: Exclude<PieceType, 'king' | 'pawn'> }
+  | { type: 'CANCEL_PROMOTION' }
   | { type: 'RESET_GAME' }
   | { type: 'UNDO_MOVE' }
   | { type: 'REDO_MOVE' }
