@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-09-02 - Pawn Promotion Flow & UI
+
+### Added
+- Pawn promotion flow with pendingPromotion in game state and REQUEST_PROMOTION/COMPLETE_PROMOTION/CANCEL_PROMOTION actions
+- Accessible PromotionDialog with keyboard navigation (Arrow keys, Enter/Space), Escape to cancel, and live status announcements
+- Integration tests: hook-level promotion flow (undo/redo) and UI-level dialog interactions
+
+### Changed
+- Reducer updated to detect promotion on pawn reaching back rank and to execute promotion with correct SAN (e.g., e8=Q, exd8=Q)
+- Redo logic ensures promoted piece type is restored on redo
+
+### Documentation
+- README updated to move Pawn promotion into implemented rules
+- WARP.md updated to include PromotionDialog and new actions/state
+- Technical Architecture and Requirements documents updated to mark promotion implemented
+
 ## 2025-09-02 - En Passant Support & Tests; Castling Rights Fix
 
 ### Added

@@ -40,10 +40,11 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
     - ChessBoard: renders the 8x8 board grid, rank/file labels, highlights selection and valid moves; exposes role=group and squares as role=button with accessible names; supports keyboard (Enter/Space) and touch tap-to-move
     - GameControls: shows current player, endgame status (checkmate/stalemate/check), move history in SAN notation; provides Reset (with confirmation), Undo, and Redo actions
     - ConfirmationDialog: reusable modal for reset confirmation with keyboard accessibility
+    - PromotionDialog: accessible modal for pawn promotion selection (Queen/Rook/Bishop/Knight) with keyboard navigation and Escape to cancel
 - State management and game logic
   - src/hooks/useChessGame.ts encapsulates all game state using useReducer
-    - State: board (8×8), currentPlayer, moveHistory, redoHistory, gameStatus, selectedSquare, validMoves, isInCheck, castlingRights
-    - Actions: SELECT_SQUARE, MAKE_MOVE, RESET_GAME, UNDO_MOVE, REDO_MOVE, SET_VALID_MOVES, UPDATE_GAME_STATUS
+    - State: board (8×8), currentPlayer, moveHistory, redoHistory, gameStatus, selectedSquare, validMoves, isInCheck, castlingRights, enPassantTarget, pendingPromotion
+    - Actions: SELECT_SQUARE, MAKE_MOVE, REQUEST_PROMOTION, COMPLETE_PROMOTION, CANCEL_PROMOTION, RESET_GAME, UNDO_MOVE, REDO_MOVE, SET_VALID_MOVES, UPDATE_GAME_STATUS
     - Workflow: clicks or drops dispatch actions; reducer updates board and history, toggles player
     - Tracks castling rights and updates them based on king/rook moves
     - Automatically detects and sets checkmate/stalemate/check status after each move

@@ -95,7 +95,7 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 ## 8. Constraints & Out of Scope
 - Castling moves are fully implemented with proper validation and execution ✅
 - En passant capture implemented ✅
-- Pawn promotion is not yet implemented
+- Pawn promotion implemented ✅
 
 ## 9. Check Detection Requirements (Implemented)
 - The system MUST prevent any move that leaves the moving side's king in check (self-check moves are illegal). ✅

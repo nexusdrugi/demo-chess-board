@@ -134,12 +134,12 @@ src/
 - Piece capture mechanics
 - Castling moves (king-side and queen-side)
 - En passant capture (with SAN "e.p." notation)
+- Pawn promotion with accessible dialog and SAN notation (e.g., e8=Q)
 - Visual feedback for valid moves
 
 ## Future Enhancements
 
 Potential features that could be added:
-- Pawn promotion (tracked in issue #8)
 - Enhanced game notation and export
 - AI opponent
 - Online multiplayer
