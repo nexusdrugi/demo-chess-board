@@ -14,7 +14,6 @@ export default defineConfig({
       reporter: ['text', 'lcov', 'html'],
       reportsDirectory: './coverage',
       exclude: [
-        'src/components/**',
         'src/main.tsx',
         'src/App.tsx',
         'tailwind.config.js',

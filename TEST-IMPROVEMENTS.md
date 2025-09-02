@@ -201,7 +201,7 @@ it('adds disambiguation by file when two knights can reach the same square', () 
 - [ ] UI tests: 
       - [x] GameControls (status display, Undo/Redo enablement, move history, Reset flow)
       - [x] ConfirmationDialog (confirm/cancel/Esc, focus behavior)
-      - [ ] ChessSquare/ChessPiece DnD (valid drop triggers onPieceDrop; invalid drag ignored)
+      - [x] ChessSquare/ChessPiece DnD (valid drop triggers onPieceDrop; invalid drag ignored)
       - [x] ErrorBoundary fallback + Reset recovery
 - [ ] Extract/centralize common test helpers for board setups
 - [ ] Add Vitest coverage thresholds (e.g., statements 80%, branches 70%)
