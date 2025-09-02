@@ -63,7 +63,6 @@ const PromotionDialog: React.FC<PromotionDialogProps> = ({ isOpen, color, onSele
             <button
               key={p}
               ref={idx === 0 ? firstBtnRef : undefined}
-              autoFocus={idx === 0}
               className={`border rounded-lg py-2 px-3 text-sm font-semibold transition ${selected === p ? 'border-blue-600 ring-2 ring-blue-300' : 'border-gray-300 hover:border-gray-400'}`}
               onClick={() => onSelect(p)}
               aria-pressed={selected === p}

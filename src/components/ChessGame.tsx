@@ -20,7 +20,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ initialState }) => {
     redoMove,
     completePromotion,
     cancelPromotion,
-  } = useChessGame(initialState as GameState | undefined)
+  } = useChessGame(initialState)
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">

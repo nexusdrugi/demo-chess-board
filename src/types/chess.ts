@@ -58,7 +58,7 @@ export interface GameState {
   isInCheck: boolean;
   castlingRights: CastlingRights;
   enPassantTarget: Square | null; // Target square for en passant capture
-  pendingPromotion?: PendingPromotion | null;
+  pendingPromotion: PendingPromotion | null;
 }
 
 // Component props interfaces
