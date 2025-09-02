@@ -74,4 +74,27 @@ describe('PromotionDialog UI', () => {
     expect(await screen.findByLabelText(/e7\s+white pawn/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/e8\s+empty/i)).toBeInTheDocument()
   })
+  it('supports keyboard-only selection via Arrow keys and Enter; exposes live status', async () => {
+    const user = userEvent.setup()
+    const init = setupGameWithPromotionPending()
+
+    render(<ChessGame initialState={init} />)
+
+    // Trigger promotion
+    const from = await screen.findByLabelText(/e7\s+white pawn/i)
+    const to = await screen.findByLabelText(/e8\s+empty/i)
+    await user.click(from)
+    await user.click(to)
+
+    const dialog = await screen.findByRole('dialog', { name: /promote pawn/i })
+
+    // Live status present
+    expect(within(dialog).getByRole('status')).toHaveTextContent(/promotion/i)
+
+    // ArrowRight twice: Queen -> Rook -> Bishop, then Enter to confirm
+    await user.keyboard('{ArrowRight}{ArrowRight}{Enter}')
+
+    // Expect Bishop result
+    expect(await screen.findByLabelText(/e8\s+white bishop/i)).toBeInTheDocument()
+  })
 })

@@ -55,6 +55,9 @@ const PromotionDialog: React.FC<PromotionDialogProps> = ({ isOpen, color, onSele
       >
         <h2 id={titleId} className="text-lg font-bold mb-4">Promote Pawn</h2>
         <p className="text-sm text-gray-600 mb-3">Choose a piece to promote your pawn to:</p>
+        <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          Promotion prompt open. Choose Queen, Rook, Bishop, or Knight. Press Enter to confirm.
+        </p>
         <div className="grid grid-cols-2 gap-3 mb-4">
           {pieceOrder.map((p, idx) => (
             <button
