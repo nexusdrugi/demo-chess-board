@@ -60,6 +60,17 @@ const ChessSquare: React.FC<ChessSquareProps> = ({
     onSquareClick(dragSquare)
   }
 
+  // Touch support: tap to select, tap destination to move
+  const handleTouchStart = () => {
+    onSquareClick(square)
+  }
+
+  const handleTouchEnd = () => {
+    if (currentSelected && currentSelected !== square) {
+      onPieceDrop(currentSelected as Square, square)
+    }
+  }
+
   const handleDragEnd = () => {
     // Drag end cleanup if needed
   }
@@ -100,6 +111,8 @@ const ChessSquare: React.FC<ChessSquareProps> = ({
       aria-pressed={isSelected || undefined}
       tabIndex={0}
       onKeyDown={handleKeyDown}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {piece && (
         <ChessPieceComponent
