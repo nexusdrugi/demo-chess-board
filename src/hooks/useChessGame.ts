@@ -124,8 +124,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const finalStatus = computeGameStatus(newBoard, opponent, nextCastlingRights, newEnPassantTarget)
       const opponentInCheck = finalStatus === 'check' || finalStatus === 'checkmate'
 
-      // Create move record capturing previous states for undo with proper algebraic notation
-const move: Move = buildMoveRecord({
+// Create move record capturing previous states for undo with proper algebraic notation
+      const move: Move = buildMoveRecord({
         from,
         to,
         piece,
@@ -194,10 +194,11 @@ const move: Move = buildMoveRecord({
 
       const mover = state.currentPlayer
       const opponent = mover === 'white' ? 'black' : 'white'
-      const opponentInCheck = computeGameStatus(newBoard, opponent, nextCastlingRights, state.enPassantTarget) === 'check' || computeGameStatus(newBoard, opponent, nextCastlingRights, state.enPassantTarget) === 'checkmate'
-      const finalStatus = computeGameStatus(newBoard, opponent, nextCastlingRights, state.enPassantTarget)
+      const computedStatus = computeGameStatus(newBoard, opponent, nextCastlingRights, state.enPassantTarget)
+      const opponentInCheck = computedStatus === 'check' || computedStatus === 'checkmate'
+      const finalStatus = computedStatus
 
-const move: Move = buildMoveRecord({
+      const move: Move = buildMoveRecord({
         from: pp.from,
         to: pp.to,
         piece,
