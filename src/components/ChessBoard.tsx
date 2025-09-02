@@ -50,6 +50,7 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
                       squareColor={squareColor}
                       onSquareClick={onSquareClick}
                       onPieceDrop={onPieceDrop}
+                      currentSelected={gameState.selectedSquare}
                     />
                   )
                 })

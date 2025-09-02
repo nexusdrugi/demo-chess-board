@@ -11,6 +11,7 @@ interface ChessSquareProps {
   squareColor: 'light' | 'dark'
   onSquareClick: (square: Square) => void
   onPieceDrop: (from: Square, to: Square) => void
+  currentSelected: Square | null
 }
 
 const ChessSquare: React.FC<ChessSquareProps> = ({
@@ -20,7 +21,8 @@ const ChessSquare: React.FC<ChessSquareProps> = ({
   isValidMove,
   squareColor,
   onSquareClick,
-  onPieceDrop
+  onPieceDrop,
+  currentSelected
 }) => {
   const handleClick = () => {
     onSquareClick(square)
@@ -68,6 +70,22 @@ const ChessSquare: React.FC<ChessSquareProps> = ({
   const validMoveClasses = isValidMove ? 'chess-square-valid-move' : ''
   const hoverClasses = 'hover:brightness-110'
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      if (!currentSelected) {
+        onSquareClick(square)
+      } else if (currentSelected !== square) {
+        onPieceDrop(currentSelected as Square, square)
+      }
+    }
+    // Optional: support Escape to clear selection
+    if (e.key === 'Escape' && isSelected) {
+      // Reselecting same square will toggle state upstream if implemented; otherwise no-op
+      onSquareClick(square)
+    }
+  }
+
   const pieceLabel = piece ? `${piece.color} ${piece.type}` : 'empty'
   const ariaLabel = `${square} ${pieceLabel}`
 
@@ -80,6 +98,8 @@ const ChessSquare: React.FC<ChessSquareProps> = ({
       role="button"
       aria-label={ariaLabel}
       aria-pressed={isSelected || undefined}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
     >
       {piece && (
         <ChessPieceComponent
