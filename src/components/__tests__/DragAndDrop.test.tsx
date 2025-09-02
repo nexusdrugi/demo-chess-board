@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
 import ChessBoard from '../ChessBoard'
-import { ChessBoardProps, ChessPiece } from '../../types/chess'
+import { ChessBoardProps } from '../../types/chess'
 import { vi } from 'vitest'
 import { createEmptyBoard, baseGameState } from '../../test/chessTestUtils'
 

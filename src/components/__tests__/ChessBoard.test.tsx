@@ -41,7 +41,7 @@ describe('ChessBoard', () => {
       expect(screen.getByText(String(r))).toBeInTheDocument()
     }
     // File labels a..h
-    ;['a','b','c','d','e','f','g','h'].forEach(f => {
+    ['a','b','c','d','e','f','g','h'].forEach(f => {
       expect(screen.getByText(f)).toBeInTheDocument()
     })
 

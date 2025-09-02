@@ -22,7 +22,7 @@ function Wrapper() {
 
 describe('ConfirmationDialog focus and body scroll handling', () => {
   it('traps focus within dialog and restores body overflow on close', async () => {
-    const { rerender } = render(<Wrapper />)
+    render(<Wrapper />)
 
     const confirmBtn = await screen.findByRole('button', { name: /Confirm/i })
 

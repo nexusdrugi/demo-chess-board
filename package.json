@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:quick": "vitest run src/utils/__tests__ src/hooks/__tests__/useChessGame*.test.ts",
+    "prepare": "husky install"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -30,6 +32,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "husky": "^9.1.7",
     "jsdom": "^24.0.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",

@@ -1,5 +1,7 @@
 # Chess Game
 
+[![codecov](https://codecov.io/gh/nexusdrugi/demo-chess-board/branch/main/graph/badge.svg)](https://codecov.io/gh/nexusdrugi/demo-chess-board)
+
 A fully functional chess game built with React, TypeScript, and Tailwind CSS. Features a complete chess implementation with proper piece movement validation, drag-and-drop functionality, and an intuitive user interface.
 
 ## Features

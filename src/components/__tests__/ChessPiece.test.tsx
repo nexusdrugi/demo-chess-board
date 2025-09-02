@@ -1,7 +1,7 @@
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
 import ChessPiece from '../ChessPiece'
-import { ChessPiece as PieceType } from '../../types/chess'
+import { ChessPiece as PieceType, Square } from '../../types/chess'
 import { vi } from 'vitest'
 
 function createPawn(color: 'white' | 'black'): PieceType {
@@ -17,7 +17,7 @@ describe('ChessPiece dragstart validation', () => {
     const { container } = render(
       <ChessPiece
         piece={piece}
-        square={'z9' as any}
+        square={'z9' as unknown as Square}
         isSelected={false}
         isValidMove={false}
         onDragStart={onDragStart}
@@ -26,11 +26,9 @@ describe('ChessPiece dragstart validation', () => {
     )
 
     const el = container.querySelector('.chess-piece') as HTMLElement
-    const dt = {
-      setData: vi.fn(),
-    }
+  const dt = { setData: vi.fn() } as unknown as DataTransfer
     // simulate dragStart with an invalid square prop
-    fireEvent.dragStart(el, { dataTransfer: dt as any })
+    fireEvent.dragStart(el, { dataTransfer: dt })
 
     expect(onDragStart).not.toHaveBeenCalled()
     expect(errorSpy).toHaveBeenCalled()
