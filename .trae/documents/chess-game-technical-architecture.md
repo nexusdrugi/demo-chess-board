@@ -289,8 +289,8 @@ type GameAction =
   - Disambiguation: adds file (a-h) or rank (1-8) when multiple pieces can make the same move
   - Capture notation: uses 'x' for captures (e.g., "Bxe5", "exd4")
   - Check/Checkmate: appends '+' for check, '#' for checkmate
-  - Special moves: "O-O" for kingside castling, "O-O-O" for queenside (when implemented)
-  - Future support for promotion (e.g., "e8=Q") and en passant (e.g., "exd6 e.p.")
+  - Special moves: "O-O" for kingside castling, "O-O-O" for queenside
+  - En passant notation: "exd6 e.p." implemented; promotion notation (e.g., "e8=Q") planned.
 - Move History Display
   - All moves shown in standard chess notation in GameControls
   - Includes move numbers and from/to squares for clarity

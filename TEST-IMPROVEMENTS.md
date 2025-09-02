@@ -193,10 +193,10 @@ it('adds disambiguation by file when two knights can reach the same square', () 
 - [x] Add king safety test: king cannot move into attacked squares (white and black symmetry)
 - [x] Add castling test: rook may be attacked but king path/landing safe ⇒ castling allowed
 - [x] Add en passant self-check prevention test (isMoveLegal filters illegal e.p.)
-- [ ] Add en passant expiry test: target expires after one ply when not used
+- [x] Add en passant expiry test: target expires after one ply when not used
 - [x] Add hasAnyLegalMoves test where e.p. is the only legal move
-- [ ] Add hook tests for castling execution + SAN (`O-O`/`O-O-O`) + undo/redo
-- [ ] Add hook test: redoHistory is cleared when new move is made after undo
+- [x] Add hook tests for castling execution + SAN (`O-O`/`O-O-O`) + undo/redo
+- [x] Add hook test: redoHistory is cleared when new move is made after undo
 - [ ] Add SAN tests: castling, disambiguation, check (`+`)/checkmate (`#`), pawn capture (exd5), promotion with capture (exd8=Q)
 - [ ] Add UI tests: 
       - [ ] GameControls (status display, Undo/Redo enablement, move history, Reset flow)

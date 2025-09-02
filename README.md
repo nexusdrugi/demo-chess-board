@@ -68,6 +68,15 @@ npm run dev
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+- `npm test` - Run tests
+- `npm run test:coverage` - Run tests with coverage (text, lcov, html reports in coverage/)
+
+## Testing and Coverage
+
+- Run tests: `npm test`
+- Coverage: `npm run test:coverage`
+- Reports: generated under `coverage/` (text summary in terminal; HTML report at `coverage/index.html`)
+- Thresholds: statements ≥ 80%, lines ≥ 80%, functions ≥ 80%, branches ≥ 70% (enforced via vitest.config.ts)
 
 ## Project Structure
 

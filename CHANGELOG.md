@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Requirements: En passant requirements marked Implemented
 
 ### Chore
+- Add coverage thresholds to vitest.config.ts (statements/lines/functions ≥ 80%, branches ≥ 70%)
 - ESLint config fixed to use plugin: extends
 
 ## 2025-09-01 - Complete Documentation Update

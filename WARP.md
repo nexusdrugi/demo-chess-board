@@ -21,6 +21,8 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 - Tests
   - npm test (runs Vitest test suite)
   - npm run test:ui (opens Vitest UI for interactive testing)
+  - npm run test:coverage (generates coverage in coverage/ with text, lcov, html; thresholds enforced)
+  - Coverage thresholds: statements ≥ 80%, functions ≥ 80%, lines ≥ 80%, branches ≥ 70%
   - Test files located in src/hooks/__tests__/ and src/utils/__tests__/
 
 ## Architecture overview
