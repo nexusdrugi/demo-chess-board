@@ -291,6 +291,50 @@ export const findKingPosition = (board: Board, color: PieceColor): Square | null
   return null
 }
 
+// Helper functions for attack detection (no piece validation)
+const getKnightAttacks = (board: Board, square: Square, color: PieceColor): Square[] => {
+  const moves: Square[] = []
+  const [row, col] = getCoordinatesFromSquare(square)
+  
+  // Knight moves in L-shape
+  const knightMoves = [
+    [-2, -1], [-2, 1], [-1, -2], [-1, 2],
+    [1, -2], [1, 2], [2, -1], [2, 1]
+  ]
+  
+  for (const [dRow, dCol] of knightMoves) {
+    const newSquare = getSquareFromCoordinates(row + dRow, col + dCol)
+    
+    if (isValidSquare(newSquare) && !isOwnPiece(board, newSquare, color)) {
+      moves.push(newSquare)
+    }
+  }
+  
+  return moves
+}
+
+const getKingAttacks = (board: Board, square: Square, color: PieceColor): Square[] => {
+  const moves: Square[] = []
+  const [row, col] = getCoordinatesFromSquare(square)
+  
+  // King moves one square in any direction
+  const directions = [
+    [-1, -1], [-1, 0], [-1, 1],
+    [0, -1],           [0, 1],
+    [1, -1],  [1, 0],  [1, 1]
+  ]
+  
+  for (const [dRow, dCol] of directions) {
+    const newSquare = getSquareFromCoordinates(row + dRow, col + dCol)
+    
+    if (isValidSquare(newSquare) && !isOwnPiece(board, newSquare, color)) {
+      moves.push(newSquare)
+    }
+  }
+  
+  return moves
+}
+
 // Determine if a king of a given color is in check
 export const isKingInCheck = (board: Board, color: PieceColor, kingSquare?: Square | null): boolean => {
   const kingPos = kingSquare ?? findKingPosition(board, color)
@@ -304,23 +348,32 @@ export const isKingInCheck = (board: Board, color: PieceColor, kingSquare?: Squa
       const from = getSquareFromCoordinates(r, c)
       let attacks: Square[] = []
       switch (piece.type) {
+        case 'p':
         case 'pawn':
           attacks = getPawnAttacks(from, piece)
           break
+        case 'r':
         case 'rook':
-          attacks = getRookMoves(board, from, piece.color)
+          attacks = slidingMoves(board, from, piece.color, [[0, 1], [0, -1], [1, 0], [-1, 0]])
           break
+        case 'n':
         case 'knight':
-          attacks = getKnightMoves(board, from, piece.color)
+          attacks = getKnightAttacks(board, from, piece.color)
           break
+        case 'b':
         case 'bishop':
-          attacks = getBishopMoves(board, from, piece.color)
+          attacks = slidingMoves(board, from, piece.color, [[1, 1], [1, -1], [-1, 1], [-1, -1]])
           break
+        case 'q':
         case 'queen':
-          attacks = getQueenMoves(board, from, piece.color)
+          attacks = slidingMoves(board, from, piece.color, [
+            [0, 1], [0, -1], [1, 0], [-1, 0], // rook directions
+            [1, 1], [1, -1], [-1, 1], [-1, -1] // bishop directions
+          ])
           break
+        case 'k':
         case 'king':
-          attacks = getKingMoves(board, from, piece.color)
+          attacks = getKingAttacks(board, from, piece.color)
           break
       }
       if (attacks.includes(kingPos)) return true
