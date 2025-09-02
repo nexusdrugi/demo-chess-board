@@ -97,4 +97,41 @@ describe('PromotionDialog UI', () => {
     // Expect Bishop result
     expect(await screen.findByLabelText(/e8\s+white bishop/i)).toBeInTheDocument()
   })
+
+  it('traps focus with Tab/Shift+Tab and closes on Escape', async () => {
+    const user = userEvent.setup()
+    const init = setupGameWithPromotionPending()
+
+    render(<ChessGame initialState={init} />)
+
+    // Trigger promotion dialog
+    const from = await screen.findByLabelText(/e7\s+white pawn/i)
+    const to = await screen.findByLabelText(/e8\s+empty/i)
+    await user.click(from)
+    await user.click(to)
+
+    const dialog = await screen.findByRole('dialog', { name: /promote pawn/i })
+
+    // First focus should be on the first piece button (Queen)
+    const queenBtn = within(dialog).getByRole('button', { name: /white queen/i })
+    expect(queenBtn).toHaveFocus()
+
+    const buttons = within(dialog).getAllByRole('button')
+    const lastBtn = buttons[buttons.length - 1] // Confirm is last
+
+    // Shift+Tab from first should wrap to last
+    await user.keyboard('{Shift>}{Tab}{/Shift}')
+    expect(lastBtn).toHaveFocus()
+
+    // Tab from last should wrap to first
+    await user.tab()
+    expect(queenBtn).toHaveFocus()
+
+    // Escape should close the dialog
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: /promote pawn/i })).not.toBeInTheDocument()
+
+    // Pawn remains on e7 after cancel
+    expect(await screen.findByLabelText(/e7\s+white pawn/i)).toBeInTheDocument()
+  })
 })
