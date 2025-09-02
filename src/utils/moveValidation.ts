@@ -1,4 +1,4 @@
-import { Board, ChessPiece, Square, PieceColor, CastlingRights } from '../types/chess'
+import { Board, ChessPiece, Square, PieceColor, CastlingRights, GameStatus } from '../types/chess'
 import {
   getCoordinatesFromSquare,
   getSquareFromCoordinates,
@@ -111,37 +111,37 @@ const getPawnAttacks = (square: Square, piece: ChessPiece): Square[] => {
   return attacks
 }
 
+// Sliding piece movement core (DRY for rook/bishop/queen)
+export const slidingMoves = (
+  board: Board,
+  square: Square,
+  color: PieceColor,
+  directions: Array<[number, number]>
+): Square[] => {
+  const out: Square[] = []
+  const [row, col] = getCoordinatesFromSquare(square)
+  for (const [dRow, dCol] of directions) {
+    for (let i = 1; i < BOARD_SIZE; i++) {
+      const s = getSquareFromCoordinates(row + i * dRow, col + i * dCol)
+      if (!isValidSquare(s)) break
+      if (isEmptySquare(board, s)) {
+        out.push(s)
+        continue
+      }
+      if (isOpponentPiece(board, s, color)) out.push(s)
+      break
+    }
+  }
+  return out
+}
+
 // Rook movement logic
 export const getRookMoves = (board: Board, square: Square, color: PieceColor): Square[] => {
   const piece = getPieceAtSquare(board, square)
   if (!piece || piece.color !== color || piece.type !== 'rook') {
     return []
   }
-  
-  const moves: Square[] = []
-  const [row, col] = getCoordinatesFromSquare(square)
-  
-  // Horizontal and vertical directions
-  const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]]
-  
-  for (const [dRow, dCol] of directions) {
-    for (let i = 1; i < BOARD_SIZE; i++) {
-      const newSquare = getSquareFromCoordinates(row + i * dRow, col + i * dCol)
-      
-      if (!isValidSquare(newSquare)) break
-      
-      if (isEmptySquare(board, newSquare)) {
-        moves.push(newSquare)
-      } else if (isOpponentPiece(board, newSquare, piece.color)) {
-        moves.push(newSquare)
-        break
-      } else {
-        break // Own piece blocks
-      }
-    }
-  }
-  
-  return moves
+  return slidingMoves(board, square, piece.color, [[0, 1], [0, -1], [1, 0], [-1, 0]])
 }
 
 // Knight movement logic
@@ -177,31 +177,7 @@ export const getBishopMoves = (board: Board, square: Square, color: PieceColor):
   if (!piece || piece.color !== color || piece.type !== 'bishop') {
     return []
   }
-  
-  const moves: Square[] = []
-  const [row, col] = getCoordinatesFromSquare(square)
-  
-  // Diagonal directions
-  const directions = [[1, 1], [1, -1], [-1, 1], [-1, -1]]
-  
-  for (const [dRow, dCol] of directions) {
-    for (let i = 1; i < BOARD_SIZE; i++) {
-      const newSquare = getSquareFromCoordinates(row + i * dRow, col + i * dCol)
-      
-      if (!isValidSquare(newSquare)) break
-      
-      if (isEmptySquare(board, newSquare)) {
-        moves.push(newSquare)
-      } else if (isOpponentPiece(board, newSquare, piece.color)) {
-        moves.push(newSquare)
-        break
-      } else {
-        break // Own piece blocks
-      }
-    }
-  }
-  
-  return moves
+  return slidingMoves(board, square, piece.color, [[1, 1], [1, -1], [-1, 1], [-1, -1]])
 }
 
 // Queen movement logic (combination of rook and bishop)
@@ -210,34 +186,15 @@ export const getQueenMoves = (board: Board, square: Square, color: PieceColor): 
   if (!piece || piece.color !== color || piece.type !== 'queen') {
     return []
   }
-  
-  const moves: Square[] = []
-  const [row, col] = getCoordinatesFromSquare(square)
-  
-  // All 8 directions: horizontal, vertical, and diagonal
-  const directions = [
-    [0, 1], [0, -1], [1, 0], [-1, 0], // rook directions
-    [1, 1], [1, -1], [-1, 1], [-1, -1] // bishop directions
-  ]
-  
-  for (const [dRow, dCol] of directions) {
-    for (let i = 1; i < BOARD_SIZE; i++) {
-      const newSquare = getSquareFromCoordinates(row + i * dRow, col + i * dCol)
-      
-      if (!isValidSquare(newSquare)) break
-      
-      if (isEmptySquare(board, newSquare)) {
-        moves.push(newSquare)
-      } else if (isOpponentPiece(board, newSquare, piece.color)) {
-        moves.push(newSquare)
-        break
-      } else {
-        break // Own piece blocks
-      }
-    }
-  }
-  
-  return moves
+  return slidingMoves(
+    board,
+    square,
+    piece.color,
+    [
+      [0, 1], [0, -1], [1, 0], [-1, 0], // rook directions
+      [1, 1], [1, -1], [-1, 1], [-1, -1] // bishop directions
+    ]
+  )
 }
 
 // King movement logic with castling support
@@ -419,6 +376,22 @@ export const isCheckmate = (board: Board, color: PieceColor, castlingRights?: Ca
 export const isStalemate = (board: Board, color: PieceColor, castlingRights?: CastlingRights, enPassantTarget?: Square | null): boolean => {
   if (isKingInCheck(board, color)) return false
   return !hasAnyLegalMoves(board, color, castlingRights, enPassantTarget)
+}
+
+// Centralized game status computation (active/check/checkmate/stalemate)
+export const computeGameStatus = (
+  board: Board,
+  nextToMove: PieceColor,
+  castlingRights?: CastlingRights,
+  enPassantTarget?: Square | null
+): GameStatus => {
+  const inCheck = isKingInCheck(board, nextToMove)
+  const base = isCheckmate(board, nextToMove, castlingRights, enPassantTarget)
+    ? 'checkmate'
+    : isStalemate(board, nextToMove, castlingRights, enPassantTarget)
+      ? 'stalemate'
+      : 'active'
+  return base !== 'active' ? base : (inCheck ? 'check' : 'active')
 }
 
 // En passant utility function
