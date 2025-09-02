@@ -1,7 +1,7 @@
 import { useReducer, useCallback } from 'react'
 import { GameState, GameAction, Square, Move, ChessPiece } from '../types/chess'
-import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove, generateAlgebraicNotation, getCoordinatesFromSquare } from '../utils/chessUtils'
-import { getValidMoves, isKingInCheck, isCheckmate, isStalemate, isEnPassantMove } from '../utils/moveValidation'
+import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove, generateAlgebraicNotation, getCoordinatesFromSquare, computeEnPassantTarget, applyCastlingRookMove, undoCastlingRookMove, buildMoveRecord } from '../utils/chessUtils'
+import { getValidMoves, isEnPassantMove, computeGameStatus } from '../utils/moveValidation'
 
 // Initial game state
 export const initialGameState: GameState = {
@@ -99,25 +99,15 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       newBoard[toRow][toCol] = { ...piece, hasMoved: true }
       newBoard[fromRow][fromCol] = null
       
-      // Handle castling: move the rook as well
+// Handle castling: move the rook as well
       if (isCastling) {
-        const isKingSide = toCol > fromCol
-        const rookFromCol = isKingSide ? 7 : 0 // h-file or a-file
-        const rookToCol = isKingSide ? 5 : 3   // f-file or d-file
-        
-        const rook = newBoard[fromRow][rookFromCol]
-        if (rook) {
-          newBoard[fromRow][rookToCol] = { ...rook, hasMoved: true }
-          newBoard[fromRow][rookFromCol] = null
-        }
+        applyCastlingRookMove(newBoard, fromRow, fromCol, toCol)
       }
       
-      // Determine new en passant target
+// Determine new en passant target
       let newEnPassantTarget: Square | null = null
-      if (piece.type === 'pawn' && Math.abs(toRow - fromRow) === 2) {
-        // Pawn moved two squares, set en passant target
-        const enPassantRow = (fromRow + toRow) / 2
-        newEnPassantTarget = `${String.fromCharCode('a'.charCodeAt(0) + fromCol)}${BOARD_SIZE - enPassantRow}` as Square
+      if (piece.type === 'pawn') {
+        newEnPassantTarget = computeEnPassantTarget(fromRow, toRow, fromCol)
       }
 
       // Update castling rights based on this move (including captured rook handling)
@@ -131,31 +121,22 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       const mover = state.currentPlayer
       const opponent = mover === 'white' ? 'black' : 'white'
-      const opponentInCheck = isKingInCheck(newBoard, opponent)
+      const finalStatus = computeGameStatus(newBoard, opponent, nextCastlingRights, newEnPassantTarget)
+      const opponentInCheck = finalStatus === 'check' || finalStatus === 'checkmate'
 
-      // Determine game status for the player to move (opponent)
-      const baseStatus = isCheckmate(newBoard, opponent)
-        ? 'checkmate'
-        : isStalemate(newBoard, opponent)
-          ? 'stalemate'
-          : 'active'
-      const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
-
-      // Create move record capturing previous states for undo with proper algebraic notation
-      const move: Move = {
+// Create move record capturing previous states for undo with proper algebraic notation
+      const move: Move = buildMoveRecord({
         from,
         to,
         piece,
-        notation: '',
-        timestamp: new Date(),
         captured: enPassantCapturedPiece || capturedPiece || undefined,
         prevHasMoved: movedPiecePrevHasMoved,
         prevCapturedHasMoved: capturedPrevHasMoved,
         prevCastlingRights: state.castlingRights,
+        prevEnPassantTarget: state.enPassantTarget,
         isEnPassant: isEnPassant || undefined,
         enPassantCaptureSquare: enPassantCaptureSquare,
-        prevEnPassantTarget: state.enPassantTarget
-      }
+      })
       const notation = generateAlgebraicNotation(state.board, move, finalStatus)
       move.notation = notation
 
@@ -213,27 +194,21 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
 
       const mover = state.currentPlayer
       const opponent = mover === 'white' ? 'black' : 'white'
-      const opponentInCheck = isKingInCheck(newBoard, opponent)
-      const baseStatus = isCheckmate(newBoard, opponent)
-        ? 'checkmate'
-        : isStalemate(newBoard, opponent)
-          ? 'stalemate'
-          : 'active'
-      const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
+      const computedStatus = computeGameStatus(newBoard, opponent, nextCastlingRights, state.enPassantTarget)
+      const opponentInCheck = computedStatus === 'check' || computedStatus === 'checkmate'
+      const finalStatus = computedStatus
 
-      const move: Move = {
+      const move: Move = buildMoveRecord({
         from: pp.from,
         to: pp.to,
         piece,
-        notation: '',
-        timestamp: new Date(),
         captured: capturedPiece || undefined,
         prevHasMoved: movedPiecePrevHasMoved,
         prevCapturedHasMoved: capturedPrevHasMoved,
         prevCastlingRights: state.castlingRights,
         prevEnPassantTarget: state.enPassantTarget,
         promotion: promoPieceType
-      }
+      })
       const notation = generateAlgebraicNotation(state.board, move, finalStatus)
       move.notation = notation
 
@@ -299,26 +274,12 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       // Handle castling undo: restore the rook as well
       if (wasCastling) {
-        const isKingSide = toCol > fromCol
-        const rookFromCol = isKingSide ? 7 : 0 // h-file or a-file
-        const rookToCol = isKingSide ? 5 : 3   // f-file or d-file
-        
-        const rook = newBoard[fromRow][rookToCol]
-        if (rook) {
-          // Restore rook to original position (it was also not moved before castling)
-          newBoard[fromRow][rookFromCol] = { ...rook, hasMoved: false }
-          newBoard[fromRow][rookToCol] = null
-        }
+        undoCastlingRookMove(newBoard, fromRow, fromCol, toCol)
       }
       
       const nextCurrent = state.currentPlayer === 'white' ? 'black' : 'white'
-      const nextInCheck = isKingInCheck(newBoard, nextCurrent)
-      const baseStatus = isCheckmate(newBoard, nextCurrent)
-        ? 'checkmate'
-        : isStalemate(newBoard, nextCurrent)
-          ? 'stalemate'
-          : 'active'
-      const finalStatus = baseStatus !== 'active' ? baseStatus : (nextInCheck ? 'check' : 'active')
+      const finalStatus = computeGameStatus(newBoard, nextCurrent, lastMove.prevCastlingRights, lastMove.prevEnPassantTarget || null)
+      const nextInCheck = finalStatus === 'check' || finalStatus === 'checkmate'
 
       return {
         ...state,
@@ -365,35 +326,19 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       // Handle castling: move the rook as well
       if (isCastling) {
-        const isKingSide = toCol > fromCol
-        const rookFromCol = isKingSide ? 7 : 0 // h-file or a-file
-        const rookToCol = isKingSide ? 5 : 3   // f-file or d-file
-        
-        const rook = newBoard[fromRow][rookFromCol]
-        if (rook) {
-          newBoard[fromRow][rookToCol] = { ...rook, hasMoved: true }
-          newBoard[fromRow][rookFromCol] = null
-        }
+        applyCastlingRookMove(newBoard, fromRow, fromCol, toCol)
       }
       
       // Determine en passant target for the redone move
       let redoEnPassantTarget: Square | null = null
-      if (moveToRedo.piece.type === 'pawn' && Math.abs(toRow - fromRow) === 2) {
-        const enPassantRow = (fromRow + toRow) / 2
-        redoEnPassantTarget = `${String.fromCharCode('a'.charCodeAt(0) + fromCol)}${BOARD_SIZE - enPassantRow}` as Square
+      if (moveToRedo.piece.type === 'pawn') {
+        redoEnPassantTarget = computeEnPassantTarget(fromRow, toRow, fromCol)
       }
       
       const mover = state.currentPlayer
       const opponent = mover === 'white' ? 'black' : 'white'
-      const opponentInCheck = isKingInCheck(newBoard, opponent)
-      
-      // Determine game status for the player to move (opponent)
-      const baseStatus = isCheckmate(newBoard, opponent)
-        ? 'checkmate'
-        : isStalemate(newBoard, opponent)
-          ? 'stalemate'
-          : 'active'
-      const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
+      const finalStatus = computeGameStatus(newBoard, opponent, state.castlingRights, redoEnPassantTarget)
+      const opponentInCheck = finalStatus === 'check' || finalStatus === 'checkmate'
       
       // Update castling rights based on the redone move
       const nextCastlingRights = updateCastlingRightsForMove(

@@ -169,6 +169,89 @@ export const updateCastlingRightsForMove = (
   return newRights
 };
 
+// Apply rook movement that accompanies a castling king move.
+// Mutates the provided board row in-place (expected on a cloned board in reducers).
+export const applyCastlingRookMove = (
+  board: Board,
+  row: number,
+  kingFromCol: number,
+  kingToCol: number
+): void => {
+  const isKingSide = kingToCol > kingFromCol
+  const rookFromCol = isKingSide ? 7 : 0 // h-file or a-file
+  const rookToCol = isKingSide ? 5 : 3   // f-file or d-file
+  const rook = board[row][rookFromCol]
+  if (rook) {
+    board[row][rookToCol] = { ...rook, hasMoved: true }
+    board[row][rookFromCol] = null
+  }
+}
+
+// Undo rook movement from a previous castling move.
+export const undoCastlingRookMove = (
+  board: Board,
+  row: number,
+  kingFromCol: number,
+  kingToCol: number
+): void => {
+  const isKingSide = kingToCol > kingFromCol
+  const rookFromCol = isKingSide ? 7 : 0
+  const rookToCol = isKingSide ? 5 : 3
+  const rook = board[row][rookToCol]
+  if (rook) {
+    board[row][rookFromCol] = { ...rook, hasMoved: false }
+    board[row][rookToCol] = null
+  }
+}
+
+// Compute en passant target square given a two-step pawn move.
+export const computeEnPassantTarget = (
+  fromRow: number,
+  toRow: number,
+  fromCol: number
+): Square | null => {
+  if (Math.abs(toRow - fromRow) !== 2) return null
+  const enPassantRow = (fromRow + toRow) / 2
+  return `${String.fromCharCode('a'.charCodeAt(0) + fromCol)}${BOARD_SIZE - enPassantRow}` as Square
+}
+
+// Build a Move record consistently (SRP/DRY helper)
+export const buildMoveRecord = (args: {
+  from: Square
+  to: Square
+  piece: ChessPiece
+  captured?: ChessPiece | null
+  prevHasMoved: boolean
+  prevCapturedHasMoved?: boolean
+  prevCastlingRights: CastlingRights
+  prevEnPassantTarget: Square | null
+  isEnPassant?: boolean
+  enPassantCaptureSquare?: Square
+  promotion?: PieceType
+}): Move => {
+  const {
+    from, to, piece, captured,
+    prevHasMoved, prevCapturedHasMoved,
+    prevCastlingRights, prevEnPassantTarget,
+    isEnPassant, enPassantCaptureSquare, promotion
+  } = args
+  return {
+    from,
+    to,
+    piece,
+    notation: '',
+    timestamp: new Date(),
+    captured: captured || undefined,
+    prevHasMoved,
+    prevCapturedHasMoved,
+    prevCastlingRights,
+    prevEnPassantTarget,
+    isEnPassant,
+    enPassantCaptureSquare,
+    promotion,
+  }
+}
+
 // Notation helpers
 export const getPieceNotationSymbol = (type: PieceType): string => {
   switch (type) {
