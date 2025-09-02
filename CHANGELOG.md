@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-09-02 - Checkmate Detection Bug Fix
+
+### Fixed
+- Corrected piece type validation in `isKingInCheck` function to properly detect check scenarios
+- Fixed checkmate detection by ensuring accurate check validation in move legality assessment
+- Improved sliding piece attack detection with unified logic for bishops, rooks, and queens
+
 ## 2025-09-02 - Promotion Dialog A11y Focus Trap
 
 ### Added
