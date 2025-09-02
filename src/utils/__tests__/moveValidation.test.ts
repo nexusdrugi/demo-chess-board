@@ -36,11 +36,9 @@ function pos(row: number, col: number): [number, number] {
 }
 
 describe('moveValidation', () => {
-  let initialBoard: Board;
   let emptyCastlingRights: CastlingRights;
 
   beforeEach(() => {
-    initialBoard = createInitialBoard();
     emptyCastlingRights = {
       white: { kingSide: false, queenSide: false },
       black: { kingSide: false, queenSide: false }
@@ -452,7 +450,7 @@ describe('moveValidation', () => {
     });
 
     it('should handle null board gracefully', () => {
-      const nullBoard = null as any;
+      const nullBoard = null as unknown as Board;
       expect(() => getValidMoves(nullBoard, getSquareFromCoordinates(4, 4), 'white', emptyCastlingRights)).not.toThrow();
     });
   });

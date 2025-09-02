@@ -6,9 +6,7 @@ const ChessPiece: React.FC<ChessPieceProps> = ({
   piece,
   square,
   isSelected,
-  isValidMove,
-  onDragStart,
-  onDragEnd
+  onDragStart
 }) => {
   const handleDragStart = (e: React.DragEvent) => {
     try {
@@ -26,7 +24,7 @@ const ChessPiece: React.FC<ChessPieceProps> = ({
     }
   }
 
-  const handleDragEnd = (e: React.DragEvent) => {
+  const handleDragEnd = () => {
     // The actual drop handling is done in ChessSquare's handleDrop
     // This is just to clean up any drag state if needed
   }

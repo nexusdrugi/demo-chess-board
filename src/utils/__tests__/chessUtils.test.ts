@@ -61,19 +61,19 @@ describe('chessUtils - castling rights', () => {
     const whiteQueen = makePiece('queen', 'white')
 
     // Capture black rook on a8
-    let next = updateCastlingRightsForMove(rights, whiteQueen as any, 'e4', 'a8', makePiece('rook','black') as any)
+    let next = updateCastlingRightsForMove(rights, whiteQueen, 'e4', 'a8', makePiece('rook','black'))
     expect(next.black.queenSide).toBe(false)
 
     // Capture black rook on h8
-    next = updateCastlingRightsForMove(rights, whiteQueen as any, 'e4', 'h8', makePiece('rook','black') as any)
+    next = updateCastlingRightsForMove(rights, whiteQueen, 'e4', 'h8', makePiece('rook','black'))
     expect(next.black.kingSide).toBe(false)
 
     // Capture white rook on a1
-    next = updateCastlingRightsForMove(rights, whiteQueen as any, 'e4', 'a1', makePiece('rook','white') as any)
+    next = updateCastlingRightsForMove(rights, whiteQueen, 'e4', 'a1', makePiece('rook','white'))
     expect(next.white.queenSide).toBe(false)
 
     // Capture white rook on h1
-    next = updateCastlingRightsForMove(rights, whiteQueen as any, 'e4', 'h1', makePiece('rook','white') as any)
+    next = updateCastlingRightsForMove(rights, whiteQueen, 'e4', 'h1', makePiece('rook','white'))
     expect(next.white.kingSide).toBe(false)
   })
 })

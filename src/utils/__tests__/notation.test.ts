@@ -17,9 +17,11 @@ describe('generateAlgebraicNotation - promotion and en passant', () => {
       piece: pawn,
       from,
       to,
-      captured: null,
+      captured: undefined,
       prevHasMoved: false,
-      prevCastlingRights: { white: { kingSide: true, queenSide: true }, black: { kingSide: true, queenSide: true } }
+      prevCastlingRights: { white: { kingSide: true, queenSide: true }, black: { kingSide: true, queenSide: true } },
+      notation: '',
+      timestamp: new Date()
     }
     const san = generateAlgebraicNotation(board, move, 'active')
     expect(san).toBe('e8=Q')
@@ -37,10 +39,12 @@ describe('generateAlgebraicNotation - promotion and en passant', () => {
       piece: pawn,
       from,
       to,
-      captured: null,
+      captured: undefined,
       prevHasMoved: false,
       prevCastlingRights: { white: { kingSide: true, queenSide: true }, black: { kingSide: true, queenSide: true } },
-      promotion: 'rook'
+      promotion: 'rook',
+      notation: '',
+      timestamp: new Date()
     }
     const san = generateAlgebraicNotation(board, move, 'active')
     expect(san).toBe('e8=R')
@@ -63,7 +67,9 @@ describe('generateAlgebraicNotation - promotion and en passant', () => {
       prevHasMoved: false,
       prevCastlingRights: { white: { kingSide: true, queenSide: true }, black: { kingSide: true, queenSide: true } },
       isEnPassant: true,
-      enPassantCaptureSquare: 'd5'
+      enPassantCaptureSquare: 'd5',
+      notation: '',
+      timestamp: new Date()
     }
     const san = generateAlgebraicNotation(board, move, 'active')
     expect(san).toBe('exd6 e.p.')

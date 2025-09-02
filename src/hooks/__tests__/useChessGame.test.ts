@@ -4,17 +4,19 @@ import { useChessGame, initialGameState } from '../useChessGame'
 import { GameState, ChessPiece } from '../../types/chess'
 
 // Helper to perform a move via the hook's public API
-const move = (hook: any, from: string, to: string) => {
+type TestHook = ReturnType<typeof renderHook<ReturnType<typeof useChessGame>>>;
+
+const move = (hook: { result: TestHook['result'] }, from: string, to: string) => {
   console.log(`TEST: Attempting move from ${from} to ${to}`)
   act(() => {
-    hook.result.current.handleSquareClick(from as any)
-    hook.result.current.handlePieceDrop(from as any, to as any)
+    hook.result.current.handleSquareClick(from)
+    hook.result.current.handlePieceDrop(from, to)
   })
   console.log(`TEST: Move completed, current turn: ${hook.result.current.gameState.currentPlayer}`)
 }
 
 describe('useChessGame - undo and castling rights', () => {
-  it('moves a piece and undoes it, restoring hasMoved state', () => {
+  test('moves a piece and undoes it, restoring hasMoved state', () => {
     const hook = renderHook(() => useChessGame())
 
     // Move white pawn from e2 to e4
@@ -37,7 +39,7 @@ describe('useChessGame - undo and castling rights', () => {
     expect(blackPawnOriginal?.color).toBe('black')
   })
 
-  it('restores captured piece and its hasMoved on undo', () => {
+  test('restores captured piece and its hasMoved on undo', () => {
     const hook = renderHook(() => useChessGame())
 
     // Sequence: e2e4, d7d5, e4xd5
@@ -59,7 +61,7 @@ describe('useChessGame - undo and castling rights', () => {
     expect(d5?.color).toBe('black')
   })
 
-  it('updates castling rights on king move and restores on undo', () => {
+  test('updates castling rights on king move and restores on undo', () => {
     const hook = renderHook(() => useChessGame())
 
     // Free a path for the king minimally (move the piece in front of the king)
@@ -80,7 +82,7 @@ describe('useChessGame - undo and castling rights', () => {
     expect(rights.white.queenSide).toBe(true)
   })
 
-  it('updates castling rights on rook move and restores on undo', () => {
+  test('updates castling rights on rook move and restores on undo', () => {
     const hook = renderHook(() => useChessGame())
 
     // Free rook path slightly: move pawn from a2 to a3
@@ -121,13 +123,13 @@ describe('useChessGame - undo and castling rights', () => {
   })
 
   test('disables black queen-side castling when white captures the a8 rook', () => {
-    const customBoard: (ChessPiece | null)[][] = initialGameState.board.map(r => r.map(p => null));
+    const customBoard: (ChessPiece | null)[][] = initialGameState.board.map(r => r.map(() => null));
 
     // Place pieces for the test scenario
-    customBoard[0][0] = { type: 'rook', color: 'black' }; // Black rook on a8
-    customBoard[1][2] = { type: 'knight', color: 'white' }; // White knight on c7
-    customBoard[7][4] = { type: 'king', color: 'white' }; // White king on e1
-    customBoard[0][4] = { type: 'king', color: 'black' }; // Black king on e8
+    customBoard[0][0] = { type: 'rook', color: 'black', hasMoved: false }; // Black rook on a8
+    customBoard[1][2] = { type: 'knight', color: 'white', hasMoved: false }; // White knight on c7
+    customBoard[7][4] = { type: 'king', color: 'white', hasMoved: false }; // White king on e1
+    customBoard[0][4] = { type: 'king', color: 'black', hasMoved: false }; // Black king on e8
 
     const customInitialState: GameState = {
       ...initialGameState,
@@ -175,15 +177,15 @@ describe('useChessGame - undo and castling rights', () => {
 
     // Black plays d7 -> d5 (sets enPassantTarget to d6)
     act(() => {
-      hook.result.current.handleSquareClick('d7' as any)
-      hook.result.current.handlePieceDrop('d7' as any, 'd5' as any)
+      hook.result.current.handleSquareClick('d7')
+      hook.result.current.handlePieceDrop('d7', 'd5')
     })
     expect(hook.result.current.gameState.enPassantTarget).toBe('d6')
 
     // White plays e5 -> d6 en passant
     act(() => {
-      hook.result.current.handleSquareClick('e5' as any)
-      hook.result.current.handlePieceDrop('e5' as any, 'd6' as any)
+      hook.result.current.handleSquareClick('e5')
+      hook.result.current.handlePieceDrop('e5', 'd6')
     })
 
     const board = hook.result.current.gameState.board
