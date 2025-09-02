@@ -30,10 +30,14 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
+        if: ${{ env.CODECOV_TOKEN != '' }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           files: ./coverage/lcov.info
           fail_ci_if_error: true
           verbose: true
+          token: ${{ env.CODECOV_TOKEN }}
 
       - name: Upload coverage artifact (HTML & lcov)
         uses: actions/upload-artifact@v4
