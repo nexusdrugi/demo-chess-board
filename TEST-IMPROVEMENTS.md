@@ -4,6 +4,12 @@ This document reviews the current tests, evaluates their value, proposes targete
 
 ## Current State Overview
 
+Latest SOLID/DRY refactor coverage snapshot (branch: SOLID-DRY-refactoring)
+- Overall statements: 95.31%
+- Overall functions: 93.02%
+- Overall lines: 95.31%
+- Overall branches: 88.64%
+
 - Engine and Utilities: strong coverage for movement, legality filtering, check detection, endgame detection, castling, and en passant legality.
 - State management (useChessGame hook): strong for undo/redo, castling rights updates, and en passant execution, including undo/redo and SAN for e.p.
 - Notation (SAN): broad coverage including castling (O-O/O-O-O), disambiguation, captures, promotion (default/explicit and with capture), and check/checkmate suffixes.
