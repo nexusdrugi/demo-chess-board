@@ -23,7 +23,8 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
   - npm run test:ui (opens Vitest UI for interactive testing)
   - npm run test:coverage (generates coverage in coverage/ with text, lcov, html; thresholds enforced)
   - Coverage thresholds: statements ≥ 80%, functions ≥ 80%, lines ≥ 80%, branches ≥ 70%
-  - Test files located in src/hooks/__tests__/ and src/utils/__tests__/
+  - Test files located in src/components/__tests__/, src/hooks/__tests__/, and src/utils/__tests__/
+  - UI tests cover ChessBoard, GameControls, ConfirmationDialog, ErrorBoundary, and DnD flows (ChessSquare/ChessPiece)
 
 ## Architecture overview
 
@@ -77,5 +78,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 ## Notes
 
 - Package manager: npm (package-lock.json present)
+- Husky pre-commit hook runs lint and a quick subset of tests (install via: npm run prepare)
+- CI: GitHub Actions runs lint + tests with coverage and uploads to Codecov (badge in README)
 - README.md includes quickstart (npm install, npm run dev/build/preview/lint) and feature overview
 

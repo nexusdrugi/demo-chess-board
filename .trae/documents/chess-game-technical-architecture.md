@@ -252,16 +252,23 @@ type GameAction =
 - Testing framework: Vitest with React Testing Library
 - Test organization:
   - Unit tests located in `src/**/__tests__/` directories
-  - Tests for hooks: `src/hooks/__tests__/useChessGame.test.ts`
-  - Tests for utilities: `src/utils/__tests__/chessUtils.test.ts`
+  - Tests for components: `src/components/__tests__/` (ChessBoard, ChessSquare/ChessPiece DnD, GameControls, ConfirmationDialog, ErrorBoundary)
+  - Tests for hooks: `src/hooks/__tests__/useChessGame*.test.ts`
+  - Tests for utilities: `src/utils/__tests__/`
 - Test commands:
-  - `npm test` - Run test suite in watch mode
-  - `npm run test:ui` - Open Vitest UI for interactive testing
+  - `npm test` - run the suite
+  - `npm run test:ui` - open Vitest UI for interactive testing
+  - `npm run test:coverage` - run with coverage (text, lcov, html)
+- Quality gates:
+  - Coverage thresholds enforced in vitest.config.ts (statements ≥ 80%, lines ≥ 80%, functions ≥ 80%, branches ≥ 70%)
+  - CI uploads coverage to Codecov via GitHub Actions (badge in README)
+  - Husky pre-commit runs lint and a quick subset of tests
 - Coverage includes:
   - Chess utility functions (coordinate conversion, board initialization)
   - Game state reducer logic
   - Move validation and check detection
   - Castling rights management
+  - UI interactions (GameControls, ConfirmationDialog) and DnD flows (ChessSquare/ChessPiece)
 
 ## 12. Endgame Detection (Implemented)
 
@@ -290,7 +297,7 @@ type GameAction =
   - Capture notation: uses 'x' for captures (e.g., "Bxe5", "exd4")
   - Check/Checkmate: appends '+' for check, '#' for checkmate
   - Special moves: "O-O" for kingside castling, "O-O-O" for queenside
-  - En passant notation: "exd6 e.p." implemented; promotion notation (e.g., "e8=Q") planned.
+- En passant notation: "exd6 e.p." implemented; promotion notation supported (e.g., "e8=Q"). Promotion move execution is out of scope for now.
 - Move History Display
   - All moves shown in standard chess notation in GameControls
   - Includes move numbers and from/to squares for clarity
@@ -413,7 +420,7 @@ type GameAction =
   - Used for reset game confirmation to prevent accidental resets
   - Accessible with keyboard navigation (Escape to cancel)
   - Focus management for better accessibility
-  - Smooth animations with fade and scale effects
+- Smooth animations with fade and scale effects
 - Reset Confirmation Flow
   - Reset button opens confirmation dialog
   - User must explicitly confirm to reset the game
@@ -422,4 +429,11 @@ type GameAction =
   - Portal-based rendering for proper modal layering
   - Guards against server-side rendering issues
   - Graceful mounting/unmounting with animations
+
+## 18. CI, Coverage, and Developer Tooling
+
+- Continuous Integration: GitHub Actions workflow runs lint and tests with coverage and uploads lcov to Codecov.
+- Coverage thresholds: enforced via vitest.config.ts (statements ≥ 80%, lines ≥ 80%, functions ≥ 80%, branches ≥ 70%).
+- Codecov: status checks and coverage reporting; badge present in README.
+- Husky: pre-commit hook executes lint and a quick subset of tests to catch issues early.
 

@@ -193,5 +193,11 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
   - Board state management
   - Castling rights updates
   - En passant validation and execution
+  - UI interactions (GameControls, ConfirmationDialog) and DnD flows (ChessSquare/ChessPiece)
 - Testing framework: Vitest with React Testing Library
 - Tests are located in `src/**/__tests__/` directories
+
+## 17. Verification and Quality Gates
+- Coverage thresholds enforced via vitest.config.ts: statements ≥ 80%, lines ≥ 80%, functions ≥ 80%, branches ≥ 70%.
+- CI uploads coverage to Codecov using GitHub Actions; coverage badge is displayed in README.
+- Husky pre-commit hook runs lint and a quick subset of tests to catch issues early.

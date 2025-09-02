@@ -6,9 +6,9 @@ This document reviews the current tests, evaluates their value, proposes targete
 
 - Engine and Utilities: strong coverage for movement, legality filtering, check detection, endgame detection, castling, and en passant legality.
 - State management (useChessGame hook): strong for undo/redo, castling rights updates, and en passant execution, including undo/redo and SAN for e.p.
-- Notation (SAN): partial; covers promotion (default/explicit) and en passant suffix. Missing castling SAN, disambiguation, broad capture/move coverage, and check/checkmate suffix tests.
-- UI components: no tests yet (ChessBoard, ChessSquare, ChessPiece, GameControls, ConfirmationDialog, ErrorBoundary).
-- Minor hygiene: a few legacy assertions compare tuple positions against string squares; replace with square-string checks.
+- Notation (SAN): broad coverage including castling (O-O/O-O-O), disambiguation, captures, promotion (default/explicit and with capture), and check/checkmate suffixes.
+- UI components: tests in place for GameControls (status, actions, history), ConfirmationDialog (confirm/cancel/Esc, focus), ChessSquare/ChessPiece DnD (valid/invalid payloads), ErrorBoundary (fallback + reset), and ChessBoard (labels and highlights).
+- Minor hygiene: a few legacy assertions compare tuple positions against string squares; replace with square-string checks. Many have been updated; continue to prefer square-string checks.
 
 ## Suite-by-Suite Review and Improvements
 
@@ -140,7 +140,7 @@ it('adds disambiguation by file when two knights can reach the same square', () 
 });
 ```
 
-## UI Tests to Add (High Impact)
+## UI Tests: Current Coverage
 
 - ChessBoard
   - Renders 8×8 squares with rank/file labels.
@@ -198,12 +198,15 @@ it('adds disambiguation by file when two knights can reach the same square', () 
 - [x] Add hook tests for castling execution + SAN (`O-O`/`O-O-O`) + undo/redo
 - [x] Add hook test: redoHistory is cleared when new move is made after undo
 - [x] Add SAN tests: castling, disambiguation, check (`+`)/checkmate (`#`), pawn capture (exd5), promotion with capture (exd8=Q)
-- [ ] UI tests: 
+- [x] UI tests: 
       - [x] GameControls (status display, Undo/Redo enablement, move history, Reset flow)
       - [x] ConfirmationDialog (confirm/cancel/Esc, focus behavior)
       - [x] ChessSquare/ChessPiece DnD (valid drop triggers onPieceDrop; invalid drag ignored)
       - [x] ErrorBoundary fallback + Reset recovery
+      - [x] ChessBoard (rank/file labels, selection + valid move highlights)
 - [x] Extract/centralize common test helpers for board setups
-- [ ] Add Vitest coverage thresholds (e.g., statements 80%, branches 70%)
-- [ ] Integrate Codecov (or Coveralls) and add a README badge (optional)
+- [x] Add Vitest coverage thresholds (e.g., statements 80%, branches 70%)
+- [x] Integrate Codecov (or Coveralls) and add a README badge (optional)
+- [x] Husky pre-commit hook to run lint and quick tests
+- [x] Silence expected React error logs in ErrorBoundary tests by mocking console.error
 

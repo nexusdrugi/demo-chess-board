@@ -79,6 +79,12 @@ npm run dev
 - Coverage: `npm run test:coverage`
 - Reports: generated under `coverage/` (text summary in terminal; HTML report at `coverage/index.html`)
 - Thresholds: statements ≥ 80%, lines ≥ 80%, functions ≥ 80%, branches ≥ 70% (enforced via vitest.config.ts)
+- CI: GitHub Actions runs lint and tests with coverage and uploads to Codecov (see badge above)
+
+## Git Hooks
+
+- Pre-commit hook (Husky) runs lint and a quick subset of tests
+- If hooks aren’t installed locally, run: `npm run prepare`
 
 ## Project Structure
 
