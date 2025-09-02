@@ -266,7 +266,7 @@ describe('moveValidation', () => {
         black: { kingSide: false, queenSide: false }
       };
       const moves = getKingMoves(board, getSquareFromCoordinates(7, 4), 'white', castlingRights);
-      expect(moves).not.toContainEqual(pos(7, 6)); // cannot castle through check
+      expect(moves).not.toContain('g1'); // cannot castle through check
     });
   });
 
@@ -466,7 +466,7 @@ describe('moveValidation', () => {
         black: { kingSide: false, queenSide: false }
       };
       const moves = getKingMoves(board, getSquareFromCoordinates(7, 4), 'white', castlingRights);
-      expect(moves).not.toContainEqual(pos(7, 6));
+      expect(moves).not.toContain('g1');
     });
 
     it('should not castle when rook has moved', () => {
@@ -479,7 +479,7 @@ describe('moveValidation', () => {
         black: { kingSide: false, queenSide: false }
       };
       const moves = getKingMoves(board, getSquareFromCoordinates(7, 4), 'white', castlingRights);
-      expect(moves).not.toContainEqual(pos(7, 6));
+      expect(moves).not.toContain('g1');
     });
 
     it('should not castle when squares between king and rook are occupied', () => {
@@ -493,7 +493,7 @@ describe('moveValidation', () => {
         black: { kingSide: false, queenSide: false }
       };
       const moves = getKingMoves(board, getSquareFromCoordinates(7, 4), 'white', castlingRights);
-      expect(moves).not.toContainEqual(pos(7, 6));
+      expect(moves).not.toContain('g1');
     });
 
     it('should not castle when king is in check', () => {
@@ -507,7 +507,7 @@ describe('moveValidation', () => {
         black: { kingSide: false, queenSide: false }
       };
       const moves = getKingMoves(board, getSquareFromCoordinates(7, 4), 'white', castlingRights);
-      expect(moves).not.toContainEqual(pos(7, 6));
+      expect(moves).not.toContain('g1');
     });
 
     it('should not castle into check', () => {
@@ -521,7 +521,64 @@ describe('moveValidation', () => {
         black: { kingSide: false, queenSide: false }
       };
       const moves = getKingMoves(board, getSquareFromCoordinates(7, 4), 'white', castlingRights);
-      expect(moves).not.toContainEqual(pos(7, 6));
+      expect(moves).not.toContain('g1');
+    });
+  });
+
+  describe('Pins, king safety, and en passant edge cases', () => {
+    it('forbids pinned bishop moves that would expose the king to check', () => {
+      // e-file: White king e1, white bishop e2, black rook e8
+      const board = createCustomBoard([
+        { position: pos(7, 4), piece: createPiece('king', 'white') },  // e1
+        { position: pos(6, 4), piece: createPiece('bishop', 'white') },// e2
+        { position: pos(0, 4), piece: createPiece('rook', 'black') }   // e8
+      ]);
+      const moves = getValidMoves(board, getSquareFromCoordinates(6, 4), 'white');
+      expect(moves).toHaveLength(0);
+    });
+
+    it('prevents the king from moving into attacked squares', () => {
+      // White king e1; black rook e3 attacks e2 and e1; king cannot move to e2
+      const board = createCustomBoard([
+        { position: pos(7, 4), piece: createPiece('king', 'white') }, // e1
+        { position: pos(5, 4), piece: createPiece('rook', 'black') }  // e3
+      ]);
+      const moves = getValidMoves(board, getSquareFromCoordinates(7, 4), 'white', emptyCastlingRights);
+      expect(moves).not.toContain('e2');
+    });
+
+    it('allows castling even if rook is attacked, provided king path and landing are safe', () => {
+      // White king e1, rook h1; black rook h3 attacks rook but not e1/f1/g1
+      const board = createCustomBoard([
+        { position: pos(7, 4), piece: createPiece('king', 'white', false) }, // e1
+        { position: pos(7, 7), piece: createPiece('rook', 'white', false) }, // h1
+        { position: pos(5, 7), piece: createPiece('rook', 'black') }         // h3
+      ]);
+      const rights: CastlingRights = { white: { kingSide: true, queenSide: false }, black: { kingSide: false, queenSide: false } };
+      const moves = getKingMoves(board, getSquareFromCoordinates(7, 4), 'white', rights);
+      expect(moves).toContain('g1');
+    });
+
+    it('disallows en passant if it would leave own king in check (self-check via discovered attack)', () => {
+      // White king e1, white pawn e5, black rook e8 (along e-file), black pawn d5; enPassantTarget = d6
+      // If white plays e5xd6 e.p., e-file opens and white king is in check -> illegal
+      const board = createCustomBoard([
+        { position: pos(7, 4), piece: createPiece('king', 'white') },   // e1
+        { position: pos(3, 4), piece: createPiece('pawn', 'white', true) }, // e5
+        { position: pos(0, 4), piece: createPiece('rook', 'black') },   // e8
+        { position: pos(3, 3), piece: createPiece('pawn', 'black', true) }  // d5
+      ]);
+      const moves = getValidMoves(board, getSquareFromCoordinates(3, 4), 'white', undefined, 'd6');
+      expect(moves).not.toContain('d6');
+    });
+
+    it('hasAnyLegalMoves returns true when en passant is the available legal move', () => {
+      // Minimalistic scenario: white pawn e5, black pawn d5; enPassantTarget d6 => white has a legal move
+      const board = createCustomBoard([
+        { position: pos(3, 4), piece: createPiece('pawn', 'white', true) }, // e5
+        { position: pos(3, 3), piece: createPiece('pawn', 'black', true) }  // d5
+      ]);
+      expect(hasAnyLegalMoves(board, 'white', emptyCastlingRights, 'd6')).toBe(true);
     });
   });
 });
