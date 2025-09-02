@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-09-02 - Promotion Dialog A11y Focus Trap
+
+### Added
+- Focus trap for PromotionDialog: Tab/Shift+Tab now cycle within the dialog; previous focus restored on close
+- UI test verifies Tab/Shift+Tab wrapping and Escape-to-cancel behavior
+
+### PRs
+- #11
+
 ## 2025-09-02 - Pawn Promotion Flow & UI
 
 ### Added
