@@ -1,31 +1,9 @@
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
 import ChessBoard from '../ChessBoard'
-import { ChessBoardProps, ChessPiece, GameState } from '../../types/chess'
+import { ChessBoardProps, ChessPiece } from '../../types/chess'
 import { vi } from 'vitest'
-
-function createEmptyBoard(): (ChessPiece | null)[][] {
-  return Array.from({ length: 8 }, () => Array.from({ length: 8 }, () => null))
-}
-
-function baseGameState(overrides: Partial<GameState> = {}): GameState {
-  return {
-    board: createEmptyBoard(),
-    currentPlayer: 'white',
-    moveHistory: [],
-    redoHistory: [],
-    gameStatus: 'active',
-    selectedSquare: null,
-    validMoves: [],
-    isInCheck: false,
-    castlingRights: {
-      white: { kingSide: true, queenSide: true },
-      black: { kingSide: true, queenSide: true }
-    },
-    enPassantTarget: null,
-    ...overrides,
-  }
-}
+import { createEmptyBoard, baseGameState } from '../../test/chessTestUtils'
 
 function createDataTransfer() {
   const store: Record<string, string> = {}
