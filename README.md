@@ -93,20 +93,24 @@ npm run dev
 
 ```
 src/
-├── components/          # React components
-│   ├── ChessBoard.tsx   # Main chess board component
-│   ├── ChessSquare.tsx  # Individual square component
-│   ├── ChessPiece.tsx   # Chess piece component
-│   └── GameControls.tsx # Game control buttons
-├── hooks/               # Custom React hooks
-│   └── useChessGame.ts  # Main game logic hook
-├── utils/               # Utility functions
-│   ├── chessUtils.ts    # Chess helper functions
-│   └── moveValidation.ts # Move validation logic
-├── types/               # TypeScript type definitions
-│   └── chess.ts         # Chess-related types
-├── App.tsx              # Main application component
-└── main.tsx             # Application entry point
+├── components/              # React components
+│   ├── ChessBoard.tsx       # Main chess board component
+│   ├── ChessSquare.tsx      # Individual square component
+│   ├── ChessPiece.tsx       # Chess piece component
+│   ├── GameControls.tsx     # Game control buttons
+│   ├── ConfirmationDialog.tsx # Reusable confirmation modal (used for Reset)
+│   ├── ErrorBoundary.tsx    # UI error boundary wrapper
+│   └── PromotionDialog.tsx  # Accessible pawn promotion selection dialog
+├── hooks/                   # Custom React hooks
+│   └── useChessGame.ts      # Main game logic hook and reducer
+├── utils/                   # Utility functions
+│   ├── chessUtils.ts        # Chess helper functions (notation, castling rights, etc.)
+│   └── moveValidation.ts    # Move validation logic (legal moves, check, mate, stalemate)
+├── types/                   # TypeScript type definitions
+│   └── chess.ts             # Chess-related types
+├── App.tsx                  # Main application component
+├── components/ChessGame.tsx # Container composing board, controls, and dialogs
+└── main.tsx                 # Application entry point
 ```
 
 ## How to Play
@@ -124,6 +128,7 @@ src/
    - **Requirements**: King and rook must not have moved, no pieces between them, king not in check, and king doesn't move through or into check
 5. **Turn System**: Players alternate turns (white moves first)
 6. **Game Controls**: Use the "Reset Game" button to restart (you'll be asked to confirm); use "Undo Move" to revert the last move; use "Redo Move" to restore a previously undone move.
+7. **Promotion**: When a pawn reaches the back rank (8 for white, 1 for black), a promotion dialog opens. Choose Queen, Rook, Bishop, or Knight; press Enter/Space to confirm or Escape to cancel.
 
 ## Game Rules Implemented
 
