@@ -102,4 +102,38 @@ describe('Drag-and-Drop Integration', () => {
 
     errorSpy.mockRestore()
   })
+
+  it('ignores drops outside the board safely', () => {
+    const board = createEmptyBoard()
+    board[6][4] = { type: 'pawn', color: 'white', hasMoved: false }
+
+    const onPieceDrop = vi.fn()
+    const props: ChessBoardProps = {
+      gameState: baseGameState({ board }),
+      onSquareClick: () => {},
+      onPieceDrop,
+    }
+
+    const { container } = render(<ChessBoard {...props} />)
+    const squares = container.querySelectorAll('.chess-square')
+    const fromSquareEl = squares[52] as HTMLElement // e2
+    const pieceEl = fromSquareEl.querySelector('.chess-piece') as HTMLElement
+
+    const dt = createDataTransfer()
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    // Start a drag
+    fireEvent.dragStart(pieceEl, { dataTransfer: dt })
+
+    // Drop on an external element (outside the board)
+    const outside = document.createElement('div')
+    document.body.appendChild(outside)
+    fireEvent.drop(outside, { dataTransfer: dt })
+
+    expect(onPieceDrop).not.toHaveBeenCalled()
+    // No new errors from our drop handlers since none were invoked
+    expect(errorSpy).not.toHaveBeenCalled()
+
+    errorSpy.mockRestore()
+  })
 })
