@@ -80,6 +80,7 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - Robust input validation for drag-and-drop interactions; invalid data must be ignored with no side effects.
 - Graceful error handling via a UI error boundary showing a friendly fallback and a Reset option.
 - Client-side logging for invalid drag data and unexpected exceptions in DnD handlers.
+- Accessibility: semantic roles and names for board, squares, and controls; keyboard and touch operability; live status announcements.
 
 ## 6. Maintainability
 - Eliminate magic numbers; use BOARD_SIZE for board dimensions and any related calculations.
@@ -194,10 +195,17 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
   - Castling rights updates
   - En passant validation and execution
   - UI interactions (GameControls, ConfirmationDialog) and DnD flows (ChessSquare/ChessPiece)
+  - Accessibility basics: jest-axe checks, keyboard-only flows (Enter/Space), touch tap-to-move
 - Testing framework: Vitest with React Testing Library
 - Tests are located in `src/**/__tests__/` directories
 
-## 17. Verification and Quality Gates
+## 17. Accessibility Requirements (Implemented)
+- Board semantics: role=group with accessible name; squares are role=button with accessible names and are focusable
+- Keyboard interaction: Enter/Space to select/move; Escape cancels dialogs
+- Live status announcements via role=status and aria-live=polite
+- Touch interaction: tap-to-select, tap-to-move
+
+## 18. Verification and Quality Gates
 - Coverage thresholds enforced via vitest.config.ts: statements ≥ 80%, lines ≥ 80%, functions ≥ 80%, branches ≥ 70%.
 - CI uploads coverage to Codecov using GitHub Actions; coverage badge is displayed in README.
 - Husky pre-commit hook runs lint and a quick subset of tests to catch issues early.

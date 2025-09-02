@@ -25,6 +25,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
   - Coverage thresholds: statements ≥ 80%, functions ≥ 80%, lines ≥ 80%, branches ≥ 70%
   - Test files located in src/components/__tests__/, src/hooks/__tests__/, and src/utils/__tests__/
   - UI tests cover ChessBoard, GameControls, ConfirmationDialog, ErrorBoundary, and DnD flows (ChessSquare/ChessPiece)
+  - Accessibility tests: jest-axe basic checks; keyboard-only flows (Enter/Space), touch tap-to-move; visual feedback and DnD edge cases
 
 ## Architecture overview
 
@@ -36,7 +37,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 - App composition (top-level flow)
   - src/main.tsx mounts <App />; App renders <ChessGame /> as the main container
   - ChessGame composes:
-    - ChessBoard: renders the 8x8 board grid, rank/file labels, highlights selection and valid moves
+    - ChessBoard: renders the 8x8 board grid, rank/file labels, highlights selection and valid moves; exposes role=group and squares as role=button with accessible names; supports keyboard (Enter/Space) and touch tap-to-move
     - GameControls: shows current player, endgame status (checkmate/stalemate/check), move history in SAN notation; provides Reset (with confirmation), Undo, and Redo actions
     - ConfirmationDialog: reusable modal for reset confirmation with keyboard accessibility
 - State management and game logic
@@ -68,7 +69,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
     - En passant implemented
 - Interaction boundaries and DnD
   - ChessPiece sets dataTransfer with its square on dragstart; visual feedback via Tailwind classes
-  - ChessSquare handles click selection and onDrop (from → to) and forwards to useChessGame handlers
+  - ChessSquare handles click selection and onDrop (from → to) and forwards to useChessGame handlers; supports touch via tap-to-select and tap-to-move; keyboard via Enter/Space
   - ChessBoard computes square color and pulls piece data from gameState.board
   - ErrorBoundary component wraps the game to handle rendering errors gracefully
 - Styling

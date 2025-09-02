@@ -7,7 +7,9 @@ A fully functional chess game built with React, TypeScript, and Tailwind CSS. Fe
 ## Features
 
 - **Complete Chess Implementation**: All standard chess pieces with proper movement rules
-- **Drag & Drop Interface**: Intuitive piece movement using mouse drag and drop
+- **Drag & Drop Interface**: Intuitive piece movement using mouse drag and drop; touch-friendly tap-to-select and tap-to-move
+- **Keyboard-Only Play**: Navigate squares with Tab/Shift+Tab; press Enter/Space to select a piece and to confirm a move
+- **Accessible UI**: Chess board announced to assistive tech (board role=group; squares role=button with accessible names like "e2 white pawn"); live game status announcements via role=status; focus-visible outlines and disabled states
 - **Move Validation**: Comprehensive validation for all piece types, with illegal moves filtered so your king is never left in check:
   - Pawn moves
   - Rook, Bishop, Queen linear movements
@@ -79,6 +81,7 @@ npm run dev
 - Coverage: `npm run test:coverage`
 - Reports: generated under `coverage/` (text summary in terminal; HTML report at `coverage/index.html`)
 - Thresholds: statements ≥ 80%, lines ≥ 80%, functions ≥ 80%, branches ≥ 70% (enforced via vitest.config.ts)
+- A11y: jest-axe integrated for basic accessibility checks in UI tests
 - CI: GitHub Actions runs lint and tests with coverage and uploads to Codecov (see badge above)
 
 ## Git Hooks
@@ -108,10 +111,12 @@ src/
 
 ## How to Play
 
-1. **Select a Piece**: Click on any of your pieces (white pieces move first)
+1. **Select a Piece**: Click, tap, or focus a square and press Enter/Space (white moves first)
 2. **Move the Piece**: 
    - **Click Method**: Click on a valid destination square
    - **Drag & Drop**: Drag the piece to a valid destination square
+   - **Touch**: Tap a piece, then tap a valid destination square
+   - **Keyboard**: Focus the destination square and press Enter/Space to confirm
 3. **Valid Moves**: Valid destination squares are highlighted when a piece is selected
 4. **Castling**: 
    - **King-side Castling**: Move the king two squares toward the rook on the king's side
@@ -134,10 +139,17 @@ src/
 ## Future Enhancements
 
 Potential features that could be added:
-- Pawn promotion
+- Pawn promotion (tracked in issue #8)
 - Enhanced game notation and export
 - AI opponent
 - Online multiplayer
+
+## Accessibility
+
+- Board semantics: role=group with accessible name "Chess board"
+- Squares: role=button with accessible names (e.g., "e2 white pawn", "e4 empty"); focusable; Enter/Space to select/move
+- Live status: role=status with aria-live=polite announces active/check/checkmate/stalemate changes
+- Touch support: tap-to-select, tap-to-move
 
 ## Contributing
 

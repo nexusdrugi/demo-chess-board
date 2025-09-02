@@ -430,7 +430,24 @@ type GameAction =
   - Guards against server-side rendering issues
   - Graceful mounting/unmounting with animations
 
-## 18. CI, Coverage, and Developer Tooling
+## 18. Accessibility (Implemented)
+
+- Semantic structure
+  - Board uses role=group with accessible name "Chess board"; squares are role=button with accessible names like "e2 white pawn", "e4 empty"
+  - Pieces inside squares are aria-hidden to avoid duplicate semantics
+- Live status announcements
+  - Game status is announced via role=status with aria-live=polite and aria-atomic=true (active/check/checkmate/stalemate)
+- Keyboard interaction
+  - Enter/Space on a square selects a piece or confirms a move to a destination from the currently selected square
+  - Squares are focusable (tabIndex=0) and expose pressed state via aria-pressed when selected
+- Touch interaction
+  - Tap-to-select a piece; tap destination to move
+- Visual feedback
+  - Selected and valid-move highlights visible; cleared after move completes
+- Testing
+  - jest-axe used for basic a11y checks; integration tests for keyboard-only moves, touch tap-to-move, visual feedback, and DnD edge cases
+
+## 19. CI, Coverage, and Developer Tooling
 
 - Continuous Integration: GitHub Actions workflow runs lint and tests with coverage and uploads lcov to Codecov.
 - Coverage thresholds: enforced via vitest.config.ts (statements ≥ 80%, lines ≥ 80%, functions ≥ 80%, branches ≥ 70%).

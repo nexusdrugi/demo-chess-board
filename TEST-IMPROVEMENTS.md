@@ -145,11 +145,16 @@ it('adds disambiguation by file when two knights can reach the same square', () 
 - ChessBoard
   - Renders 8×8 squares with rank/file labels.
   - Highlights selected square and valid moves according to gameState.
+  - Accessibility: role=group board, squares role=button with accessible names; jest-axe basic checks
+  - Keyboard-only moves: Enter/Space to select/move
+  - Touch: tap-to-select and tap-to-move
 - ChessSquare + ChessPiece
   - Drag-and-drop: ChessPiece sets dataTransfer with its square; ChessSquare triggers onPieceDrop only when valid (format and from ≠ to); invalid drag payloads are safely ignored.
+  - DnD edge cases: same-square drop is a no-op; drops outside board ignored; invalid payloads ignored
+  - Visual feedback: valid-move highlight visible during drag and cleared after drop
 - GameControls
-  - Displays current player and game status (active/check/checkmate/stalemate) correctly.
-  - Undo/Redo buttons enable/disable correctly and invoke handlers.
+  - Displays current player and game status (active/check/checkmate/stalemate) correctly; status announced via role=status live region
+  - Undo/Redo buttons enable/disable correctly and invoke handlers; keyboard operable
   - Move history renders SAN and from→to info.
   - Reset opens ConfirmationDialog; confirm calls onResetGame; cancel closes the dialog.
 - ConfirmationDialog
@@ -159,21 +164,11 @@ it('adds disambiguation by file when two knights can reach the same square', () 
 
 ## Remaining UI test opportunities
 
-- Accessibility
-  - Roles and accessible names for board, squares, pieces, and controls; ensure status changes (active/check/checkmate/stalemate/turn) are announced via aria-live.
-  - Keyboard navigation and focus order: tab/shift+tab traversal, enter/space to select/confirm, escape to cancel dialogs; visible focus outlines.
-- Keyboard-only moves
-  - Select a piece and execute a legal move using only the keyboard; verify valid move highlights and execution without mouse input.
-- Touch and pointer events
-  - Simulate touch/pointer interactions for drag-and-drop on mobile; verify no reliance on hover-only affordances.
-- DnD edge cases
-  - Same-square drop no-op, drops outside the board ignored, invalid/missing dataTransfer payloads ignored, robustness against cross-window drags.
-- Visual feedback
-  - Drag-over/valid-move highlight updates during drag and clears on drop or cancel; selection state resets appropriately.
+- Accessibility extras
+  - Announce move history updates via aria-live (polite), if desired
+  - Consider aria-keyshortcuts metadata for Enter/Space on squares
 - Promotion flow (when implemented)
   - Promotion selection UI renders; keyboard selection works; default choice behavior; cancel/escape flow; SAN updates accordingly.
-- GameControls accessibility
-  - Buttons have aria-labels; disabled states are conveyed to assistive tech; move history scroll/focus behavior is stable.
 
 ## Hygiene & Policy Improvements
 
@@ -222,6 +217,11 @@ it('adds disambiguation by file when two knights can reach the same square', () 
       - [x] ChessSquare/ChessPiece DnD (valid drop triggers onPieceDrop; invalid drag ignored)
       - [x] ErrorBoundary fallback + Reset recovery
       - [x] ChessBoard (rank/file labels, selection + valid move highlights)
+      - [x] Accessibility: board/square roles and accessible names; jest-axe basic checks
+      - [x] Keyboard-only moves (Enter/Space)
+      - [x] Touch tap-to-select and tap-to-move
+      - [x] DnD edge cases: same-square, invalid payloads, outside-board drop
+      - [x] Visual feedback during drag and cleanup after drop
 - [x] Extract/centralize common test helpers for board setups
 - [x] Add Vitest coverage thresholds (e.g., statements 80%, branches 70%)
 - [x] Integrate Codecov (or Coveralls) and add a README badge (optional)
