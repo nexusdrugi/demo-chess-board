@@ -1,0 +1,77 @@
+import React from 'react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import ChessGame from '../ChessGame'
+import type { GameState, ChessPiece } from '../../types/chess'
+import { initialGameState } from '../../hooks/useChessGame'
+
+const emptyBoard = (): (ChessPiece | null)[][] => Array(8).fill(null).map(() => Array(8).fill(null))
+
+function setupGameWithPromotionPending() {
+  const board = emptyBoard()
+  // White pawn e7; kings e1 and a8
+  board[8 - 7][4] = { type: 'pawn', color: 'white', hasMoved: true }
+  board[8 - 1][4] = { type: 'king', color: 'white', hasMoved: false }
+  board[8 - 8][0] = { type: 'king', color: 'black', hasMoved: false }
+
+  const init: GameState = {
+    ...initialGameState,
+    board,
+    currentPlayer: 'white',
+    gameStatus: 'active',
+    moveHistory: [],
+    redoHistory: [],
+    selectedSquare: null,
+    validMoves: [],
+    isInCheck: false,
+    enPassantTarget: null,
+    pendingPromotion: null,
+  }
+  return init
+}
+
+describe('PromotionDialog UI', () => {
+  it('opens on promotion attempt and promotes to queen on confirm', async () => {
+    const user = userEvent.setup()
+    const init = setupGameWithPromotionPending()
+
+    render(<ChessGame initialState={init} />)
+
+    // Perform the move: e7 -> e8 to trigger dialog
+    const from = await screen.findByLabelText(/e7\s+white pawn/i)
+    const to = await screen.findByLabelText(/e8\s+empty/i)
+    await user.click(from)
+    await user.click(to)
+
+    // Dialog appears
+    const dialog = await screen.findByRole('dialog', { name: /promote pawn/i })
+    expect(dialog).toBeInTheDocument()
+
+    // Confirm default queen via Confirm button
+    const confirm = within(dialog).getByRole('button', { name: /confirm/i })
+    await user.click(confirm)
+
+    // Board shows promoted queen at e8
+    expect(await screen.findByLabelText(/e8\s+white queen/i)).toBeInTheDocument()
+  })
+
+  it('can cancel promotion and keep pawn at original square', async () => {
+    const user = userEvent.setup()
+    const init = setupGameWithPromotionPending()
+
+    render(<ChessGame initialState={init} />)
+
+    const from = await screen.findByLabelText(/e7\s+white pawn/i)
+    const to = await screen.findByLabelText(/e8\s+empty/i)
+    await user.click(from)
+    await user.click(to)
+
+    const dialog = await screen.findByRole('dialog', { name: /promote pawn/i })
+    const cancel = within(dialog).getByRole('button', { name: /cancel/i })
+    await user.click(cancel)
+
+    // Pawn remains on e7, e8 stays empty
+    expect(await screen.findByLabelText(/e7\s+white pawn/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/e8\s+empty/i)).toBeInTheDocument()
+  })
+})
