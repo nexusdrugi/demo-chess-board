@@ -215,6 +215,43 @@ export const computeEnPassantTarget = (
   return `${String.fromCharCode('a'.charCodeAt(0) + fromCol)}${BOARD_SIZE - enPassantRow}` as Square
 }
 
+// Build a Move record consistently (SRP/DRY helper)
+export const buildMoveRecord = (args: {
+  from: Square
+  to: Square
+  piece: ChessPiece
+  captured?: ChessPiece | null
+  prevHasMoved: boolean
+  prevCapturedHasMoved?: boolean
+  prevCastlingRights: CastlingRights
+  prevEnPassantTarget: Square | null
+  isEnPassant?: boolean
+  enPassantCaptureSquare?: Square
+  promotion?: PieceType
+}): Move => {
+  const {
+    from, to, piece, captured,
+    prevHasMoved, prevCapturedHasMoved,
+    prevCastlingRights, prevEnPassantTarget,
+    isEnPassant, enPassantCaptureSquare, promotion
+  } = args
+  return {
+    from,
+    to,
+    piece,
+    notation: '',
+    timestamp: new Date(),
+    captured: captured || undefined,
+    prevHasMoved,
+    prevCapturedHasMoved,
+    prevCastlingRights,
+    prevEnPassantTarget,
+    isEnPassant,
+    enPassantCaptureSquare,
+    promotion,
+  }
+}
+
 // Notation helpers
 export const getPieceNotationSymbol = (type: PieceType): string => {
   switch (type) {

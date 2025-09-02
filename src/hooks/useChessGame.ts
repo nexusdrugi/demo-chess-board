@@ -1,6 +1,6 @@
 import { useReducer, useCallback } from 'react'
 import { GameState, GameAction, Square, Move, ChessPiece } from '../types/chess'
-import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove, generateAlgebraicNotation, getCoordinatesFromSquare, computeEnPassantTarget, applyCastlingRookMove, undoCastlingRookMove } from '../utils/chessUtils'
+import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove, generateAlgebraicNotation, getCoordinatesFromSquare, computeEnPassantTarget, applyCastlingRookMove, undoCastlingRookMove, buildMoveRecord } from '../utils/chessUtils'
 import { getValidMoves, isEnPassantMove, computeGameStatus } from '../utils/moveValidation'
 
 // Initial game state
@@ -125,20 +125,18 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const opponentInCheck = finalStatus === 'check' || finalStatus === 'checkmate'
 
       // Create move record capturing previous states for undo with proper algebraic notation
-      const move: Move = {
+const move: Move = buildMoveRecord({
         from,
         to,
         piece,
-        notation: '',
-        timestamp: new Date(),
         captured: enPassantCapturedPiece || capturedPiece || undefined,
         prevHasMoved: movedPiecePrevHasMoved,
         prevCapturedHasMoved: capturedPrevHasMoved,
         prevCastlingRights: state.castlingRights,
+        prevEnPassantTarget: state.enPassantTarget,
         isEnPassant: isEnPassant || undefined,
         enPassantCaptureSquare: enPassantCaptureSquare,
-        prevEnPassantTarget: state.enPassantTarget
-      }
+      })
       const notation = generateAlgebraicNotation(state.board, move, finalStatus)
       move.notation = notation
 
@@ -199,19 +197,17 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const opponentInCheck = computeGameStatus(newBoard, opponent, nextCastlingRights, state.enPassantTarget) === 'check' || computeGameStatus(newBoard, opponent, nextCastlingRights, state.enPassantTarget) === 'checkmate'
       const finalStatus = computeGameStatus(newBoard, opponent, nextCastlingRights, state.enPassantTarget)
 
-      const move: Move = {
+const move: Move = buildMoveRecord({
         from: pp.from,
         to: pp.to,
         piece,
-        notation: '',
-        timestamp: new Date(),
         captured: capturedPiece || undefined,
         prevHasMoved: movedPiecePrevHasMoved,
         prevCapturedHasMoved: capturedPrevHasMoved,
         prevCastlingRights: state.castlingRights,
         prevEnPassantTarget: state.enPassantTarget,
         promotion: promoPieceType
-      }
+      })
       const notation = generateAlgebraicNotation(state.board, move, finalStatus)
       move.notation = notation
 
