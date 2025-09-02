@@ -1,10 +1,10 @@
 import { useReducer, useCallback } from 'react'
 import { GameState, GameAction, Square, PieceColor, CastlingRights, Move } from '../types/chess'
-import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove, generateAlgebraicNotation } from '../utils/chessUtils'
-import { getValidMoves, isKingInCheck, isCheckmate, isStalemate } from '../utils/moveValidation'
+import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove, generateAlgebraicNotation, getCoordinatesFromSquare } from '../utils/chessUtils'
+import { getValidMoves, isKingInCheck, isCheckmate, isStalemate, isEnPassantMove } from '../utils/moveValidation'
 
 // Initial game state
-const initialGameState: GameState = {
+export const initialGameState: GameState = {
   board: createInitialBoard(),
   currentPlayer: 'white',
   moveHistory: [],
@@ -13,7 +13,8 @@ const initialGameState: GameState = {
   selectedSquare: null,
   validMoves: [],
   isInCheck: false,
-  castlingRights: createInitialCastlingRights()
+  castlingRights: createInitialCastlingRights(),
+  enPassantTarget: null
 }
 
 // Game state reducer
@@ -30,7 +31,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       // If clicking on own piece, select it
       if (piece && piece.color === state.currentPlayer) {
-        const validMoves = getValidMoves(state.board, square, piece, state.castlingRights)
+        const validMoves = getValidMoves(state.board, square, piece.color, state.castlingRights, state.enPassantTarget)
         return {
           ...state,
           selectedSquare: square,
@@ -66,6 +67,20 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       // Check if this is a castling move (king moves two squares horizontally)
       const isCastling = piece.type === 'king' && Math.abs(toCol - fromCol) === 2
       
+      // Check if this is an en passant move
+      const isEnPassant = isEnPassantMove(state.board, from, to, state.enPassantTarget)
+      let enPassantCaptureSquare: Square | undefined
+      let enPassantCapturedPiece: ChessPiece | null = null
+      
+      // Handle en passant capture
+      if (isEnPassant && state.enPassantTarget) {
+        const [enPassantRow, enPassantCol] = getCoordinatesFromSquare(state.enPassantTarget)
+        const captureRow = piece.color === 'white' ? enPassantRow + 1 : enPassantRow - 1
+        enPassantCaptureSquare = `${String.fromCharCode('a'.charCodeAt(0) + enPassantCol)}${BOARD_SIZE - captureRow}` as Square
+        enPassantCapturedPiece = newBoard[captureRow][enPassantCol]
+        newBoard[captureRow][enPassantCol] = null // Remove the captured pawn
+      }
+      
       // Update board state
       newBoard[toRow][toCol] = { ...piece, hasMoved: true }
       newBoard[fromRow][fromCol] = null
@@ -82,6 +97,14 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           newBoard[fromRow][rookFromCol] = null
         }
       }
+      
+      // Determine new en passant target
+      let newEnPassantTarget: Square | null = null
+      if (piece.type === 'pawn' && Math.abs(toRow - fromRow) === 2) {
+        // Pawn moved two squares, set en passant target
+        const enPassantRow = (fromRow + toRow) / 2
+        newEnPassantTarget = `${String.fromCharCode('a'.charCodeAt(0) + fromCol)}${BOARD_SIZE - enPassantRow}` as Square
+      }
 
       // Update castling rights based on this move (including captured rook handling)
       const nextCastlingRights = updateCastlingRightsForMove(
@@ -89,7 +112,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         piece,
         from,
         to,
-        capturedPiece || undefined
+        enPassantCapturedPiece || capturedPiece
       )
       
       const mover = state.currentPlayer
@@ -105,18 +128,21 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       const finalStatus = baseStatus !== 'active' ? baseStatus : (opponentInCheck ? 'check' : 'active')
 
       // Create move record capturing previous states for undo with proper algebraic notation
-      const notation = generateAlgebraicNotation(state.board, piece, from, to, capturedPiece, finalStatus)
       const move: Move = {
         from,
         to,
         piece,
-        notation,
         timestamp: new Date(),
-        captured: capturedPiece || undefined,
+        captured: enPassantCapturedPiece || capturedPiece || undefined,
         prevHasMoved: movedPiecePrevHasMoved,
         prevCapturedHasMoved: capturedPrevHasMoved,
-        prevCastlingRights: state.castlingRights
+        prevCastlingRights: state.castlingRights,
+        isEnPassant: isEnPassant || undefined,
+        enPassantCaptureSquare: enPassantCaptureSquare,
+        prevEnPassantTarget: state.enPassantTarget
       }
+      const notation = generateAlgebraicNotation(state.board, move, finalStatus)
+      move.notation = notation
 
       return {
         ...state,
@@ -128,7 +154,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         validMoves: [],
         isInCheck: opponentInCheck,
         gameStatus: finalStatus,
-        castlingRights: nextCastlingRights
+        castlingRights: nextCastlingRights,
+        enPassantTarget: newEnPassantTarget
       }
     }
     
@@ -149,11 +176,21 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       
       // Restore piece to original position with previous hasMoved state
       newBoard[fromRow][fromCol] = { ...lastMove.piece, hasMoved: lastMove.prevHasMoved }
-      // Restore captured piece (if any) with its previous hasMoved state
-      if (lastMove.captured) {
-        newBoard[toRow][toCol] = { ...lastMove.captured, hasMoved: lastMove.prevCapturedHasMoved ?? lastMove.captured.hasMoved }
-      } else {
+      
+      // Handle en passant undo
+      if (lastMove.isEnPassant && lastMove.enPassantCaptureSquare && lastMove.captured) {
+        // Clear the destination square
         newBoard[toRow][toCol] = null
+        // Restore the captured pawn to its original position
+        const [captureRow, captureCol] = getCoordinatesFromSquare(lastMove.enPassantCaptureSquare)
+        newBoard[captureRow][captureCol] = { ...lastMove.captured, hasMoved: lastMove.prevCapturedHasMoved ?? lastMove.captured.hasMoved }
+      } else {
+        // Regular move undo: restore captured piece (if any) with its previous hasMoved state
+        if (lastMove.captured) {
+          newBoard[toRow][toCol] = { ...lastMove.captured, hasMoved: lastMove.prevCapturedHasMoved ?? lastMove.captured.hasMoved }
+        } else {
+          newBoard[toRow][toCol] = null
+        }
       }
       
       // Handle castling undo: restore the rook as well
@@ -189,7 +226,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         validMoves: [],
         isInCheck: nextInCheck,
         gameStatus: finalStatus,
-        castlingRights: lastMove.prevCastlingRights
+        castlingRights: lastMove.prevCastlingRights,
+        enPassantTarget: lastMove.prevEnPassantTarget || null
       }
     }
     
@@ -209,6 +247,13 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       newBoard[toRow][toCol] = { ...moveToRedo.piece, hasMoved: true }
       newBoard[fromRow][fromCol] = null
       
+      // Handle en passant redo
+      if (moveToRedo.isEnPassant && moveToRedo.enPassantCaptureSquare) {
+        // Remove the captured pawn from its original position
+        const [captureRow, captureCol] = getCoordinatesFromSquare(moveToRedo.enPassantCaptureSquare)
+        newBoard[captureRow][captureCol] = null
+      }
+      
       // Handle castling: move the rook as well
       if (isCastling) {
         const isKingSide = toCol > fromCol
@@ -220,6 +265,13 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           newBoard[fromRow][rookToCol] = { ...rook, hasMoved: true }
           newBoard[fromRow][rookFromCol] = null
         }
+      }
+      
+      // Determine en passant target for the redone move
+      let redoEnPassantTarget: Square | null = null
+      if (moveToRedo.piece.type === 'pawn' && Math.abs(toRow - fromRow) === 2) {
+        const enPassantRow = (fromRow + toRow) / 2
+        redoEnPassantTarget = `${String.fromCharCode('a'.charCodeAt(0) + fromCol)}${BOARD_SIZE - enPassantRow}` as Square
       }
       
       const mover = state.currentPlayer
@@ -253,7 +305,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         validMoves: [],
         isInCheck: opponentInCheck,
         gameStatus: finalStatus,
-        castlingRights: nextCastlingRights
+        castlingRights: nextCastlingRights,
+        enPassantTarget: redoEnPassantTarget
       }
     }
     
@@ -275,8 +328,8 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
 }
 
 // Custom hook for chess game logic
-export const useChessGame = () => {
-  const [gameState, dispatch] = useReducer(gameReducer, initialGameState)
+export const useChessGame = (initialState: GameState = initialGameState) => {
+  const [gameState, dispatch] = useReducer(gameReducer, initialState)
   
   const handleSquareClick = useCallback((square: Square) => {
     if (!isValidSquare(square)) return

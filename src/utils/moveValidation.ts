@@ -1,4 +1,4 @@
-import { Board, ChessPiece, Square, PieceType, PieceColor, CastlingRights } from '../types/chess'
+import { Board, ChessPiece, Square, PieceColor, CastlingRights } from '../types/chess'
 import {
   getCoordinatesFromSquare,
   getSquareFromCoordinates,
@@ -11,39 +11,48 @@ import {
 } from './chessUtils'
 
 // Get all valid moves for a piece at a given square
-export const getValidMoves = (board: Board, square: Square, piece: ChessPiece, castlingRights?: CastlingRights): Square[] => {
+export const getValidMoves = (board: Board, square: Square, color: PieceColor, castlingRights?: CastlingRights, enPassantTarget?: Square | null): Square[] => {
+  if (!board) return []
   if (!isValidSquare(square)) return []
+  
+  const piece = getPieceAtSquare(board, square)
+  if (!piece || piece.color !== color) return []
 
   let moves: Square[] = []
   switch (piece.type) {
     case 'pawn':
-      moves = getPawnMoves(board, square, piece)
+      moves = getPawnMoves(board, square, piece.color, enPassantTarget)
       break
     case 'rook':
-      moves = getRookMoves(board, square, piece)
+      moves = getRookMoves(board, square, piece.color)
       break
     case 'knight':
-      moves = getKnightMoves(board, square, piece)
+      moves = getKnightMoves(board, square, piece.color)
       break
     case 'bishop':
-      moves = getBishopMoves(board, square, piece)
+      moves = getBishopMoves(board, square, piece.color)
       break
     case 'queen':
-      moves = getQueenMoves(board, square, piece)
+      moves = getQueenMoves(board, square, piece.color)
       break
     case 'king':
-      moves = getKingMoves(board, square, piece, castlingRights)
+      moves = getKingMoves(board, square, piece.color, castlingRights)
       break
     default:
       moves = []
   }
 
   // Filter out moves that would leave own king in check
-  return moves.filter((to) => isMoveLegal(board, square, to, piece))
+  return moves.filter((to) => isMoveLegal(board, square, to, piece.color))
 }
 
-// Pawn movement logic
-const getPawnMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
+// Pawn movement logic with en passant support
+export const getPawnMoves = (board: Board, square: Square, color: PieceColor, enPassantTarget?: Square | null): Square[] => {
+  const piece = getPieceAtSquare(board, square)
+  if (!piece || piece.color !== color || piece.type !== 'pawn') {
+    return []
+  }
+  
   const moves: Square[] = []
   const [row, col] = getCoordinatesFromSquare(square)
   const direction = piece.color === 'white' ? -1 : 1
@@ -75,11 +84,23 @@ const getPawnMoves = (board: Board, square: Square, piece: ChessPiece): Square[]
     moves.push(captureRight)
   }
   
+  // En passant capture
+  if (enPassantTarget) {
+    const enPassantRank = piece.color === 'white' ? 3 : 4 // 5th rank for white (index 3), 4th rank for black (index 4)
+    if (row === enPassantRank) {
+      const [enPassantRow, enPassantCol] = getCoordinatesFromSquare(enPassantTarget)
+      // Check if en passant target is diagonally adjacent
+      if (enPassantRow === row + direction && Math.abs(enPassantCol - col) === 1) {
+        moves.push(enPassantTarget)
+      }
+    }
+  }
+  
   return moves
 }
 
 // Pawn attack generator (for check detection): diagonals only, occupancy-agnostic
-const getPawnAttacks = (board: Board, square: Square, piece: ChessPiece): Square[] => {
+const getPawnAttacks = (square: Square, piece: ChessPiece): Square[] => {
   const attacks: Square[] = []
   const [row, col] = getCoordinatesFromSquare(square)
   const direction = piece.color === 'white' ? -1 : 1
@@ -91,7 +112,12 @@ const getPawnAttacks = (board: Board, square: Square, piece: ChessPiece): Square
 }
 
 // Rook movement logic
-const getRookMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
+export const getRookMoves = (board: Board, square: Square, color: PieceColor): Square[] => {
+  const piece = getPieceAtSquare(board, square)
+  if (!piece || piece.color !== color || piece.type !== 'rook') {
+    return []
+  }
+  
   const moves: Square[] = []
   const [row, col] = getCoordinatesFromSquare(square)
   
@@ -119,7 +145,12 @@ const getRookMoves = (board: Board, square: Square, piece: ChessPiece): Square[]
 }
 
 // Knight movement logic
-const getKnightMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
+export const getKnightMoves = (board: Board, square: Square, color: PieceColor): Square[] => {
+  const piece = getPieceAtSquare(board, square)
+  if (!piece || piece.color !== color || piece.type !== 'knight') {
+    return []
+  }
+  
   const moves: Square[] = []
   const [row, col] = getCoordinatesFromSquare(square)
   
@@ -141,7 +172,12 @@ const getKnightMoves = (board: Board, square: Square, piece: ChessPiece): Square
 }
 
 // Bishop movement logic
-const getBishopMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
+export const getBishopMoves = (board: Board, square: Square, color: PieceColor): Square[] => {
+  const piece = getPieceAtSquare(board, square)
+  if (!piece || piece.color !== color || piece.type !== 'bishop') {
+    return []
+  }
+  
   const moves: Square[] = []
   const [row, col] = getCoordinatesFromSquare(square)
   
@@ -169,15 +205,48 @@ const getBishopMoves = (board: Board, square: Square, piece: ChessPiece): Square
 }
 
 // Queen movement logic (combination of rook and bishop)
-const getQueenMoves = (board: Board, square: Square, piece: ChessPiece): Square[] => {
-  return [
-    ...getRookMoves(board, square, piece),
-    ...getBishopMoves(board, square, piece)
+export const getQueenMoves = (board: Board, square: Square, color: PieceColor): Square[] => {
+  const piece = getPieceAtSquare(board, square)
+  if (!piece || piece.color !== color || piece.type !== 'queen') {
+    return []
+  }
+  
+  const moves: Square[] = []
+  const [row, col] = getCoordinatesFromSquare(square)
+  
+  // All 8 directions: horizontal, vertical, and diagonal
+  const directions = [
+    [0, 1], [0, -1], [1, 0], [-1, 0], // rook directions
+    [1, 1], [1, -1], [-1, 1], [-1, -1] // bishop directions
   ]
+  
+  for (const [dRow, dCol] of directions) {
+    for (let i = 1; i < BOARD_SIZE; i++) {
+      const newSquare = getSquareFromCoordinates(row + i * dRow, col + i * dCol)
+      
+      if (!isValidSquare(newSquare)) break
+      
+      if (isEmptySquare(board, newSquare)) {
+        moves.push(newSquare)
+      } else if (isOpponentPiece(board, newSquare, piece.color)) {
+        moves.push(newSquare)
+        break
+      } else {
+        break // Own piece blocks
+      }
+    }
+  }
+  
+  return moves
 }
 
 // King movement logic with castling support
-const getKingMoves = (board: Board, square: Square, piece: ChessPiece, castlingRights?: CastlingRights): Square[] => {
+export const getKingMoves = (board: Board, square: Square, color: PieceColor, castlingRights?: CastlingRights): Square[] => {
+  const piece = getPieceAtSquare(board, square)
+  if (!piece || piece.color !== color || piece.type !== 'king') {
+    return []
+  }
+  
   const moves: Square[] = []
   const [row, col] = getCoordinatesFromSquare(square)
   
@@ -279,22 +348,22 @@ export const isKingInCheck = (board: Board, color: PieceColor, kingSquare?: Squa
       let attacks: Square[] = []
       switch (piece.type) {
         case 'pawn':
-          attacks = getPawnAttacks(board, from, piece)
+          attacks = getPawnAttacks(from, piece)
           break
         case 'rook':
-          attacks = getRookMoves(board, from, piece)
+          attacks = getRookMoves(board, from, piece.color)
           break
         case 'knight':
-          attacks = getKnightMoves(board, from, piece)
+          attacks = getKnightMoves(board, from, piece.color)
           break
         case 'bishop':
-          attacks = getBishopMoves(board, from, piece)
+          attacks = getBishopMoves(board, from, piece.color)
           break
         case 'queen':
-          attacks = getQueenMoves(board, from, piece)
+          attacks = getQueenMoves(board, from, piece.color)
           break
         case 'king':
-          attacks = getKingMoves(board, from, piece)
+          attacks = getKingMoves(board, from, piece.color)
           break
       }
       if (attacks.includes(kingPos)) return true
@@ -304,7 +373,10 @@ export const isKingInCheck = (board: Board, color: PieceColor, kingSquare?: Squa
 }
 
 // Validate that making a move does not leave own king in check
-export const isMoveLegal = (board: Board, from: Square, to: Square, piece: ChessPiece): boolean => {
+export const isMoveLegal = (board: Board, from: Square, to: Square, color: PieceColor): boolean => {
+  const piece = getPieceAtSquare(board, from)
+  if (!piece || piece.color !== color) return false
+  
   // Simulate the move on a shallow-cloned board
   const temp: Board = board.map(row => row.map(cell => (cell ? { ...cell } : null)))
   const [fromRow, fromCol] = getCoordinatesFromSquare(from)
@@ -315,13 +387,13 @@ export const isMoveLegal = (board: Board, from: Square, to: Square, piece: Chess
 }
 
 // New: determine if a player has any legal moves available
-export const hasAnyLegalMoves = (board: Board, color: PieceColor): boolean => {
+export const hasAnyLegalMoves = (board: Board, color: PieceColor, castlingRights?: CastlingRights, enPassantTarget?: Square | null): boolean => {
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c < BOARD_SIZE; c++) {
       const piece = board[r][c]
       if (!piece || piece.color !== color) continue
       const from = getSquareFromCoordinates(r, c)
-      const moves = getValidMoves(board, from, piece)
+      const moves = getValidMoves(board, from, piece.color, castlingRights, enPassantTarget)
       if (moves.length > 0) return true
     }
   }
@@ -329,13 +401,31 @@ export const hasAnyLegalMoves = (board: Board, color: PieceColor): boolean => {
 }
 
 // New: checkmate detection
-export const isCheckmate = (board: Board, color: PieceColor): boolean => {
+export const isCheckmate = (board: Board, color: PieceColor, castlingRights?: CastlingRights, enPassantTarget?: Square | null): boolean => {
   if (!isKingInCheck(board, color)) return false
-  return !hasAnyLegalMoves(board, color)
+  return !hasAnyLegalMoves(board, color, castlingRights, enPassantTarget)
 }
 
 // New: stalemate detection
-export const isStalemate = (board: Board, color: PieceColor): boolean => {
+export const isStalemate = (board: Board, color: PieceColor, castlingRights?: CastlingRights, enPassantTarget?: Square | null): boolean => {
   if (isKingInCheck(board, color)) return false
-  return !hasAnyLegalMoves(board, color)
+  return !hasAnyLegalMoves(board, color, castlingRights, enPassantTarget)
+}
+
+// En passant utility function
+export const isEnPassantMove = (board: Board, from: Square, to: Square, enPassantTarget: Square | null): boolean => {
+  if (!enPassantTarget || to !== enPassantTarget) return false
+  
+  const piece = getPieceAtSquare(board, from)
+  if (!piece || piece.type !== 'pawn') return false
+  
+  const [fromRow, fromCol] = getCoordinatesFromSquare(from)
+  const [toRow, toCol] = getCoordinatesFromSquare(to)
+  const direction = piece.color === 'white' ? -1 : 1
+  const enPassantRank = piece.color === 'white' ? 3 : 4
+  
+  // Verify pawn is on correct rank and moving diagonally
+  return fromRow === enPassantRank && 
+         toRow === fromRow + direction && 
+         Math.abs(toCol - fromCol) === 1
 }

@@ -121,6 +121,10 @@ interface Move {
   prevHasMoved: boolean;
   prevCapturedHasMoved?: boolean;
   prevCastlingRights: CastlingRights;
+  // En passant tracking
+  isEnPassant?: boolean;
+  enPassantCaptureSquare?: Square; // Square where captured pawn was located
+  prevEnPassantTarget?: Square | null; // Previous en passant target for undo
 }
 
 // Board state (8x8 array)
@@ -137,6 +141,7 @@ interface GameState {
   validMoves: Square[];
   isInCheck: boolean;
   castlingRights: CastlingRights;
+  enPassantTarget: Square | null; // Target square for en passant capture
 }
 }
 
@@ -222,7 +227,8 @@ type GameAction =
   | { type: 'UNDO_MOVE' }
   | { type: 'REDO_MOVE' }
   | { type: 'SET_VALID_MOVES'; moves: Square[] }
-  | { type: 'UPDATE_GAME_STATUS'; status: GameStatus };
+  | { type: 'UPDATE_GAME_STATUS'; status: GameStatus }
+  | { type: 'SET_EN_PASSANT_TARGET'; target: Square | null };
 ```
 
 ## 10. Check Detection and Legal Move Filtering (Implemented)
@@ -335,7 +341,72 @@ type GameAction =
   - Redo button disabled when redoHistory is empty
   - Visual feedback with hover states and disabled states
 
-## 16. User Experience Enhancements
+## 16. En Passant Implementation (To Be Implemented)
+
+### 16.1 Move Validation (utils/moveValidation.ts)
+- getPawnMoves() enhancement:
+  - Check if opponent's last move was a 2-square pawn advance
+  - Validate capturing pawn is on correct rank (5th for white, 4th for black)
+  - Verify capturing pawn is adjacent to the moved pawn
+  - Add en passant target square to valid moves when conditions met
+- isEnPassantMove() utility function:
+  - Determines if a move is an en passant capture
+  - Validates all en passant conditions are satisfied
+  - Returns capture square location (different from destination)
+- Enhanced move validation:
+  - Check that en passant doesn't leave king in check
+  - Validate en passant eligibility expires after one turn
+
+### 16.2 Game State Management (hooks/useChessGame.ts)
+- En Passant Target Tracking:
+  - Set enPassantTarget when pawn moves 2 squares from starting position
+  - Clear enPassantTarget after each move (expires immediately)
+  - Store previous enPassantTarget in move history for undo
+- MAKE_MOVE Action Enhancement:
+  - Detect en passant moves by checking destination vs capture square
+  - Remove captured pawn from correct square (not destination)
+  - Update enPassantTarget based on current move
+  - Generate proper notation with "e.p." suffix
+- UNDO_MOVE Action Enhancement:
+  - Restore captured pawn to original position
+  - Restore previous enPassantTarget state
+  - Handle en passant-specific undo logic
+- REDO_MOVE Action Enhancement:
+  - Re-execute en passant capture logic
+  - Maintain en passant state consistency
+
+### 16.3 Notation System Enhancement (utils/chessUtils.ts)
+- generateAlgebraicNotation() updates:
+  - Detect en passant moves via isEnPassant flag
+  - Generate notation format: "exd6 e.p."
+  - Handle disambiguation for en passant captures
+  - Maintain check/checkmate indicators after en passant
+
+### 16.4 Data Flow for En Passant
+```typescript
+// En passant detection flow
+1. Opponent moves pawn 2 squares → set enPassantTarget
+2. Current player selects pawn → getPawnMoves() checks en passant eligibility
+3. Valid en passant move highlighted → user makes move
+4. MAKE_MOVE detects en passant → removes captured pawn, updates notation
+5. enPassantTarget cleared → eligibility expires
+
+// En passant undo flow
+1. UNDO_MOVE triggered → restore captured pawn to original square
+2. Restore previous enPassantTarget → maintain state consistency
+3. Recalculate game status → ensure check detection works correctly
+```
+
+### 16.5 Testing Requirements for En Passant
+- Unit tests for en passant validation logic
+- Integration tests for en passant execution and undo
+- Edge case testing:
+  - En passant preventing/causing check
+  - Multiple en passant opportunities
+  - En passant eligibility expiration
+  - Undo/redo state consistency
+
+## 17. User Experience Enhancements
 
 - Confirmation Dialogs (components/ConfirmationDialog.tsx)
   - Reusable modal component for user confirmations

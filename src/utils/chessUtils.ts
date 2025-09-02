@@ -1,4 +1,4 @@
-import { PieceType, PieceColor, Square, ChessPiece, Board, CastlingRights, GameStatus } from '../types/chess'
+import { PieceType, PieceColor, Square, ChessPiece, Board, CastlingRights, GameStatus, Move } from '../types/chess'
 import { getValidMoves } from './moveValidation'
 
 // Board configuration
@@ -129,48 +129,38 @@ export const isRookMove = (piece: ChessPiece | null): boolean => piece?.type ===
 
 // Update castling rights based on a move (king moves disable both sides; rook moves disable side from original corner)
 export const updateCastlingRightsForMove = (
-  rights: CastlingRights,
-  piece: ChessPiece | null,
+  currentRights: CastlingRights,
+  piece: Piece,
   from: Square,
   to: Square,
-  captured?: ChessPiece | null
+  captured: Piece | null
 ): CastlingRights => {
-  const next: CastlingRights = {
-    white: { ...rights.white },
-    black: { ...rights.black }
+  const newRights = { ...currentRights };
+  const movingPlayer = piece.color;
+
+  if (piece.type === 'king') {
+    newRights[movingPlayer] = { kingSide: false, queenSide: false };
   }
 
-  if (!piece) return next
-
-  if (isKingMove(piece)) {
-    if (piece.color === 'white') {
-      next.white.kingSide = false
-      next.white.queenSide = false
-    } else {
-      next.black.kingSide = false
-      next.black.queenSide = false
-    }
-  } else if (isRookMove(piece)) {
-    // Disable the side corresponding to the rook's starting file
-    if (piece.color === 'white') {
-      if (from === 'h1') next.white.kingSide = false
-      if (from === 'a1') next.white.queenSide = false
-    } else {
-      if (from === 'h8') next.black.kingSide = false
-      if (from === 'a8') next.black.queenSide = false
+  if (piece.type === 'rook' && !piece.hasMoved) {
+    if (from === (movingPlayer === 'white' ? 'a1' : 'a8')) {
+      newRights[movingPlayer].queenSide = false;
+    } else if (from === (movingPlayer === 'white' ? 'h1' : 'h8')) {
+      newRights[movingPlayer].kingSide = false;
     }
   }
 
-  // Captured rook disables opponent's corresponding side based on the destination square
   if (captured?.type === 'rook') {
-    if (to === 'a1') next.white.queenSide = false
-    if (to === 'h1') next.white.kingSide = false
-    if (to === 'a8') next.black.queenSide = false
-    if (to === 'h8') next.black.kingSide = false
+    const opponent = movingPlayer === 'white' ? 'black' : 'white';
+    if (to === (opponent === 'white' ? 'a1' : 'a8')) {
+      newRights[opponent].queenSide = false;
+    } else if (to === (opponent === 'white' ? 'h1' : 'h8')) {
+      newRights[opponent].kingSide = false;
+    }
   }
 
-  return next
-}
+  return newRights;
+};
 
 // Notation helpers
 export const getPieceNotationSymbol = (type: PieceType): string => {
@@ -213,7 +203,7 @@ const getOtherCandidateFromSquares = (board: Board, piece: ChessPiece, from: Squ
       if (p.type !== piece.type) continue
       const sq = getSquareFromCoordinates(r, c)
       if (sq === from) continue
-      const moves = getValidMoves(board, sq, p)
+      const moves = getValidMoves(board, sq, p.color)
       if (moves.includes(to)) others.push(sq)
     }
   }
@@ -236,13 +226,11 @@ const getDisambiguationString = (from: Square, conflictSquares: Square[]): strin
 // Generate SAN (Standard Algebraic Notation) for a move
 export const generateAlgebraicNotation = (
   board: Board,
-  piece: ChessPiece,
-  from: Square,
-  to: Square,
-  captured?: ChessPiece | null,
-  resultStatus?: GameStatus,
-  opts?: { promotion?: PieceType; enPassant?: boolean }
+  move: Move,
+  resultStatus?: GameStatus
 ): string => {
+  const { piece, from, to, captured, isEnPassant, promotion } = move
+  
   // Castling
   const castle = isCastlingMove(piece, from, to)
   if (castle) {
@@ -253,16 +241,16 @@ export const generateAlgebraicNotation = (
 
   // Pawn moves
   if (piece.type === 'pawn') {
-    const isEp = !!opts?.enPassant
+    const isEp = !!isEnPassant
     const isCapture = !!captured || isEp
     const captureMark = isCapture ? 'x' : ''
     const base = isCapture ? `${from[0]}${captureMark}${to}` : `${to}`
 
-    // Promotion support (default to queen if promotion not specified)
+    // Promotion support
     const isPromotion =
       (piece.color === 'white' && to[1] === '8') ||
       (piece.color === 'black' && to[1] === '1')
-    const promoPiece = isPromotion ? (opts?.promotion ?? 'queen') : undefined
+    const promoPiece = isPromotion ? (promotion ?? 'queen') : undefined
     const promoSuffix = promoPiece ? `=${getPieceNotationSymbol(promoPiece)}` : ''
 
     const epMark = isEp ? ' e.p.' : ''

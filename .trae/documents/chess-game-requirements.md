@@ -93,7 +93,7 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 
 ## 8. Constraints & Out of Scope
 - Castling moves are fully implemented with proper validation and execution ✅
-- En passant capture remains out of scope for this iteration
+- En passant capture is now in scope for implementation
 - Pawn promotion is not yet implemented
 
 ## 9. Check Detection Requirements (Implemented)
@@ -154,12 +154,44 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - The rook MUST automatically move to the correct position when castling. ✅
 - Castling notation MUST display as "O-O" or "O-O-O" in move history. ✅
 
-## 15. Testing Requirements
+## 15. En Passant Requirements (To Be Implemented)
+- The system MUST support en passant capture according to official chess rules
+- En passant MUST only be allowed when all conditions are met:
+  - Opponent pawn moves exactly 2 squares from starting position
+  - Capturing pawn is on the 5th rank (white) or 4th rank (black)
+  - Capturing pawn is adjacent to the moved pawn
+  - En passant must be performed immediately on the next turn
+- The captured pawn MUST be removed from the board (not the destination square)
+- En passant notation MUST display as "exd6 e.p." in move history
+- Undo/redo MUST properly restore the captured pawn and game state
+
+### 15.1 UI/UX Requirements for En Passant
+- Valid en passant moves MUST be highlighted like other valid moves
+- The captured pawn MUST visually disappear when en passant is executed
+- Move history MUST clearly indicate en passant with "e.p." notation
+- Drag-and-drop MUST work seamlessly for en passant moves
+
+### 15.2 Game State Tracking Requirements
+- System MUST track the last move to determine en passant eligibility
+- En passant target square MUST be stored in game state when applicable
+- Game state MUST include en passant eligibility flag
+- Move validation MUST check en passant conditions accurately
+
+### 15.3 Acceptance Criteria
+- En passant moves appear in valid moves when conditions are met
+- Captured pawn is removed from correct square (not destination)
+- En passant eligibility expires after one turn if not used
+- Undo restores both the capturing pawn and captured pawn positions
+- Check detection works correctly after en passant captures
+- En passant moves are properly validated to prevent self-check
+
+## 16. Testing Requirements
 - Unit tests MUST be provided for core game logic
 - Test coverage includes:
   - Move validation for all piece types
   - Check detection algorithms
   - Board state management
   - Castling rights updates
+  - En passant validation and execution
 - Testing framework: Vitest with React Testing Library
 - Tests are located in `src/**/__tests__/` directories

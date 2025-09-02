@@ -1,13 +1,16 @@
 import { renderHook, act } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
-import { useChessGame } from '../useChessGame'
+import { describe, test, expect } from 'vitest'
+import { useChessGame, initialGameState } from '../useChessGame'
+import { GameState, Piece } from '../types/chess'
 
 // Helper to perform a move via the hook's public API
 const move = (hook: any, from: string, to: string) => {
+  console.log(`TEST: Attempting move from ${from} to ${to}`)
   act(() => {
     hook.result.current.handleSquareClick(from as any)
     hook.result.current.handlePieceDrop(from as any, to as any)
   })
+  console.log(`TEST: Move completed, current turn: ${hook.result.current.gameState.currentPlayer}`)
 }
 
 describe('useChessGame - undo and castling rights', () => {
@@ -97,17 +100,49 @@ describe('useChessGame - undo and castling rights', () => {
     expect(rights.white.queenSide).toBe(true)
   })
 
-  it('disables black queen-side castling when white captures the a8 rook', () => {
+  test('updates castling rights on rook move and restores on undo', () => {
     const hook = renderHook(() => useChessGame())
 
-    // Knight route to capture a8 rook: b1->a3, c7 pawn must move, a3->b5, b5->c7, c7->a8xR
-    move(hook, 'b1', 'a3')
-    move(hook, 'c7', 'c6')
-    move(hook, 'a3', 'b5')
-    move(hook, 'h7', 'h6') // arbitrary black move
-    move(hook, 'b5', 'c7')
-    move(hook, 'a7', 'a6') // open a7 to avoid interference
-    move(hook, 'c7', 'a8') // capture rook on a8
+    // Free rook path slightly: move pawn from a2 to a3
+    move(hook, 'a2', 'a3')
+    move(hook, 'a7', 'a6')
+
+    // Move white rook from a1 to a2
+    move(hook, 'a1', 'a2')
+
+    let rights = hook.result.current.gameState.castlingRights
+    expect(rights.white.queenSide).toBe(false)
+    expect(rights.white.kingSide).toBe(true)
+
+    // Undo rook move
+    act(() => hook.result.current.undoMove())
+    rights = hook.result.current.gameState.castlingRights
+    expect(rights.white.queenSide).toBe(true)
+  })
+
+  test('disables black queen-side castling when white captures the a8 rook', () => {
+    const customBoard: (Piece | null)[][] = initialGameState.board.map(r => r.map(p => null));
+
+    // Place pieces for the test scenario
+    customBoard[0][0] = { type: 'rook', color: 'black' }; // Black rook on a8
+    customBoard[1][2] = { type: 'knight', color: 'white' }; // White knight on c7
+    customBoard[7][4] = { type: 'king', color: 'white' }; // White king on e1
+    customBoard[0][4] = { type: 'king', color: 'black' }; // Black king on e8
+
+    const customInitialState: GameState = {
+      ...initialGameState,
+      board: customBoard,
+      currentPlayer: 'white',
+      castlingRights: {
+        white: { kingSide: true, queenSide: true },
+        black: { kingSide: true, queenSide: true },
+      },
+    };
+
+    const { result } = renderHook(() => useChessGame(customInitialState));
+    const hook = { result };
+
+    move(hook, 'c7', 'a8') // white knight c7->a8 (capture rook)
 
     const rights = hook.result.current.gameState.castlingRights
     expect(rights.black.queenSide).toBe(false)

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { BOARD_SIZE, generateAlgebraicNotation, getCoordinatesFromSquare } from '../../utils/chessUtils'
-import type { Board, ChessPiece } from '../../types/chess'
+import type { Board, ChessPiece, Move } from '../../types/chess'
 
 const emptyBoard = (): Board => Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(null))
 
@@ -13,7 +13,15 @@ describe('generateAlgebraicNotation - promotion and en passant', () => {
     const pawn: ChessPiece = { type: 'pawn', color: 'white', hasMoved: true }
     board[fr][fc] = pawn
 
-    const san = generateAlgebraicNotation(board, pawn, from, to, undefined, 'active')
+    const move: Move = {
+      piece: pawn,
+      from,
+      to,
+      captured: null,
+      prevHasMoved: false,
+      prevCastlingRights: { white: { kingSide: true, queenSide: true }, black: { kingSide: true, queenSide: true } }
+    }
+    const san = generateAlgebraicNotation(board, move, 'active')
     expect(san).toBe('e8=Q')
   })
 
@@ -25,7 +33,16 @@ describe('generateAlgebraicNotation - promotion and en passant', () => {
     const pawn: ChessPiece = { type: 'pawn', color: 'white', hasMoved: true }
     board[fr][fc] = pawn
 
-    const san = generateAlgebraicNotation(board, pawn, from, to, undefined, 'active', { promotion: 'rook' })
+    const move: Move = {
+      piece: pawn,
+      from,
+      to,
+      captured: null,
+      prevHasMoved: false,
+      prevCastlingRights: { white: { kingSide: true, queenSide: true }, black: { kingSide: true, queenSide: true } },
+      promotion: 'rook'
+    }
+    const san = generateAlgebraicNotation(board, move, 'active')
     expect(san).toBe('e8=R')
   })
 
@@ -37,7 +54,18 @@ describe('generateAlgebraicNotation - promotion and en passant', () => {
     const pawn: ChessPiece = { type: 'pawn', color: 'white', hasMoved: true }
     board[fr][fc] = pawn
 
-    const san = generateAlgebraicNotation(board, pawn, from, to, null, 'active', { enPassant: true })
+    const capturedPawn: ChessPiece = { type: 'pawn', color: 'black', hasMoved: true }
+    const move: Move = {
+      piece: pawn,
+      from,
+      to,
+      captured: capturedPawn,
+      prevHasMoved: false,
+      prevCastlingRights: { white: { kingSide: true, queenSide: true }, black: { kingSide: true, queenSide: true } },
+      isEnPassant: true,
+      enPassantCaptureSquare: 'd5'
+    }
+    const san = generateAlgebraicNotation(board, move, 'active')
     expect(san).toBe('exd6 e.p.')
   })
 })
