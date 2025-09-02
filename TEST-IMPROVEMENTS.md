@@ -157,6 +157,24 @@ it('adds disambiguation by file when two knights can reach the same square', () 
 - ErrorBoundary
   - Renders fallback UI when child throws; Reset calls onReset; recovers after reset.
 
+## Remaining UI test opportunities
+
+- Accessibility
+  - Roles and accessible names for board, squares, pieces, and controls; ensure status changes (active/check/checkmate/stalemate/turn) are announced via aria-live.
+  - Keyboard navigation and focus order: tab/shift+tab traversal, enter/space to select/confirm, escape to cancel dialogs; visible focus outlines.
+- Keyboard-only moves
+  - Select a piece and execute a legal move using only the keyboard; verify valid move highlights and execution without mouse input.
+- Touch and pointer events
+  - Simulate touch/pointer interactions for drag-and-drop on mobile; verify no reliance on hover-only affordances.
+- DnD edge cases
+  - Same-square drop no-op, drops outside the board ignored, invalid/missing dataTransfer payloads ignored, robustness against cross-window drags.
+- Visual feedback
+  - Drag-over/valid-move highlight updates during drag and clears on drop or cancel; selection state resets appropriately.
+- Promotion flow (when implemented)
+  - Promotion selection UI renders; keyboard selection works; default choice behavior; cancel/escape flow; SAN updates accordingly.
+- GameControls accessibility
+  - Buttons have aria-labels; disabled states are conveyed to assistive tech; move history scroll/focus behavior is stable.
+
 ## Hygiene & Policy Improvements
 
 - Clean assertions
