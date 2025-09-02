@@ -15,12 +15,26 @@ const titleId = 'promotion-dialog-title'
 const PromotionDialog: React.FC<PromotionDialogProps> = ({ isOpen, color, onSelect, onCancel }) => {
   const [selected, setSelected] = useState<'queen' | 'rook' | 'bishop' | 'knight'>('queen')
   const firstBtnRef = useRef<HTMLButtonElement | null>(null)
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+  const prevFocusRef = useRef<HTMLElement | null>(null)
 
+  // Manage initial focus and remember previous focus for restoration
   useEffect(() => {
     if (isOpen) {
+      prevFocusRef.current = (document.activeElement as HTMLElement) ?? null
       setSelected('queen')
       // Focus first button
       firstBtnRef.current?.focus()
+    }
+    return () => {
+      // On close/unmount, restore focus to previous focus target if possible
+      if (!isOpen && prevFocusRef.current) {
+        try {
+          prevFocusRef.current.focus()
+        } catch {
+          // ignore if element is no longer focusable
+        }
+      }
     }
   }, [isOpen])
 
@@ -30,16 +44,48 @@ const PromotionDialog: React.FC<PromotionDialogProps> = ({ isOpen, color, onSele
     if (e.key === 'Escape') {
       e.preventDefault()
       onCancel()
+      return
     }
+
+    if (e.key === 'Tab') {
+      const container = dialogRef.current
+      const focusables = container ? Array.from(
+        container.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter(el => !el.hasAttribute('disabled') && el.tabIndex !== -1) : []
+
+      if (focusables.length > 0) {
+        const first = focusables[0]
+        const last = focusables[focusables.length - 1]
+        const active = document.activeElement as HTMLElement | null
+        if (e.shiftKey) {
+          if (active === first || !container?.contains(active)) {
+            e.preventDefault()
+            last.focus()
+          }
+        } else {
+          if (active === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }
+      }
+      return
+    }
+
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
       e.preventDefault()
       const idx = pieceOrder.indexOf(selected)
       const nextIdx = (idx + (e.key === 'ArrowRight' ? 1 : -1) + pieceOrder.length) % pieceOrder.length
       setSelected(pieceOrder[nextIdx])
+      return
     }
+
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       onSelect(selected)
+      return
     }
   }
 
@@ -48,6 +94,7 @@ const PromotionDialog: React.FC<PromotionDialogProps> = ({ isOpen, color, onSele
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onKeyDown={handleKeyDown}>
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
