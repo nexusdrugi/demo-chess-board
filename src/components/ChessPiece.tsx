@@ -39,6 +39,7 @@ const ChessPiece: React.FC<ChessPieceProps> = ({
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      aria-hidden="true"
     >
       {pieceSymbol}
     </div>

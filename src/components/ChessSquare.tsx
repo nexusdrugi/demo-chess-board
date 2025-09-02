@@ -68,12 +68,18 @@ const ChessSquare: React.FC<ChessSquareProps> = ({
   const validMoveClasses = isValidMove ? 'chess-square-valid-move' : ''
   const hoverClasses = 'hover:brightness-110'
 
+  const pieceLabel = piece ? `${piece.color} ${piece.type}` : 'empty'
+  const ariaLabel = `${square} ${pieceLabel}`
+
   return (
     <div
       className={`${baseClasses} ${colorClasses} ${selectedClasses} ${validMoveClasses} ${hoverClasses}`}
       onClick={handleClick}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      role="button"
+      aria-label={ariaLabel}
+      aria-pressed={isSelected || undefined}
     >
       {piece && (
         <ChessPieceComponent

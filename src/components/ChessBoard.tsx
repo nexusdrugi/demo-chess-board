@@ -27,7 +27,11 @@ const ChessBoard: React.FC<ChessBoardProps> = ({
         {/* Chess board */}
         <div>
           <ErrorBoundary>
-            <div className="grid grid-cols-8 border-2 border-gray-700">
+            <div
+              className="grid grid-cols-8 border-2 border-gray-700"
+              role="group"
+              aria-label="Chess board"
+            >
               {ranks.map(rank =>
                 files.map(file => {
                   const square = `${file}${rank}`

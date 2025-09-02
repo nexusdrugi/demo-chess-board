@@ -35,19 +35,19 @@ const GameControls: React.FC<GameControlsProps> = ({
           <div className="flex justify-between">
             <span className="text-gray-600">Status:</span>
             {gameState.gameStatus === 'checkmate' ? (
-              <span className="font-semibold text-red-600">
+              <span className="font-semibold text-red-600" role="status" aria-live="polite" aria-atomic="true">
                 ♟️ Checkmate — {winnerLabel} Wins!
               </span>
             ) : gameState.gameStatus === 'stalemate' ? (
-              <span className="font-semibold text-yellow-600">
+              <span className="font-semibold text-yellow-600" role="status" aria-live="polite" aria-atomic="true">
                 🤝 Stalemate — Draw!
               </span>
             ) : gameState.gameStatus === 'check' ? (
-              <span className="font-semibold text-orange-600">
+              <span className="font-semibold text-orange-600" role="status" aria-live="polite" aria-atomic="true">
                 ⚠️ Check!
               </span>
             ) : (
-              <span className="font-semibold capitalize text-blue-600">
+              <span className="font-semibold capitalize text-blue-600" role="status" aria-live="polite" aria-atomic="true">
                 {gameState.gameStatus}
               </span>
             )}
