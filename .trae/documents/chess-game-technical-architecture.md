@@ -341,10 +341,10 @@ type GameAction =
   - Redo button disabled when redoHistory is empty
   - Visual feedback with hover states and disabled states
 
-## 16. En Passant Implementation (To Be Implemented)
+## 16. En Passant Implementation (Implemented)
 
 ### 16.1 Move Validation (utils/moveValidation.ts)
-- getPawnMoves() enhancement:
+- getPawnMoves() includes:
   - Check if opponent's last move was a 2-square pawn advance
   - Validate capturing pawn is on correct rank (5th for white, 4th for black)
   - Verify capturing pawn is adjacent to the moved pawn
@@ -353,7 +353,7 @@ type GameAction =
   - Determines if a move is an en passant capture
   - Validates all en passant conditions are satisfied
   - Returns capture square location (different from destination)
-- Enhanced move validation:
+- Move validation:
   - Check that en passant doesn't leave king in check
   - Validate en passant eligibility expires after one turn
 
@@ -362,20 +362,20 @@ type GameAction =
   - Set enPassantTarget when pawn moves 2 squares from starting position
   - Clear enPassantTarget after each move (expires immediately)
   - Store previous enPassantTarget in move history for undo
-- MAKE_MOVE Action Enhancement:
+- MAKE_MOVE Action:
   - Detect en passant moves by checking destination vs capture square
   - Remove captured pawn from correct square (not destination)
   - Update enPassantTarget based on current move
   - Generate proper notation with "e.p." suffix
-- UNDO_MOVE Action Enhancement:
+- UNDO_MOVE Action:
   - Restore captured pawn to original position
   - Restore previous enPassantTarget state
   - Handle en passant-specific undo logic
-- REDO_MOVE Action Enhancement:
+- REDO_MOVE Action:
   - Re-execute en passant capture logic
   - Maintain en passant state consistency
 
-### 16.3 Notation System Enhancement (utils/chessUtils.ts)
+### 16.3 Notation System (utils/chessUtils.ts)
 - generateAlgebraicNotation() updates:
   - Detect en passant moves via isEnPassant flag
   - Generate notation format: "exd6 e.p."

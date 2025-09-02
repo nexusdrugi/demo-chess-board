@@ -62,7 +62,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
     - Check detection fully implemented: isKingInCheck() validates king safety, isMoveLegal() prevents self-check
     - Endgame detection: hasAnyLegalMoves() checks for any valid moves, isCheckmate() and isStalemate() determine game end
     - getPawnAttacks(): special function for pawn diagonal attacks used in check detection
-    - En passant not implemented
+    - En passant implemented
 - Interaction boundaries and DnD
   - ChessPiece sets dataTransfer with its square on dragstart; visual feedback via Tailwind classes
   - ChessSquare handles click selection and onDrop (from → to) and forwards to useChessGame handlers

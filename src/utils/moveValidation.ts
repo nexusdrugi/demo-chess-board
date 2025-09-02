@@ -43,7 +43,7 @@ export const getValidMoves = (board: Board, square: Square, color: PieceColor, c
   }
 
   // Filter out moves that would leave own king in check
-  return moves.filter((to) => isMoveLegal(board, square, to, piece.color))
+  return moves.filter((to) => isMoveLegal(board, square, to, piece.color, enPassantTarget))
 }
 
 // Pawn movement logic with en passant support
@@ -373,7 +373,7 @@ export const isKingInCheck = (board: Board, color: PieceColor, kingSquare?: Squa
 }
 
 // Validate that making a move does not leave own king in check
-export const isMoveLegal = (board: Board, from: Square, to: Square, color: PieceColor): boolean => {
+export const isMoveLegal = (board: Board, from: Square, to: Square, color: PieceColor, enPassantTarget?: Square | null): boolean => {
   const piece = getPieceAtSquare(board, from)
   if (!piece || piece.color !== color) return false
   
@@ -381,6 +381,15 @@ export const isMoveLegal = (board: Board, from: Square, to: Square, color: Piece
   const temp: Board = board.map(row => row.map(cell => (cell ? { ...cell } : null)))
   const [fromRow, fromCol] = getCoordinatesFromSquare(from)
   const [toRow, toCol] = getCoordinatesFromSquare(to)
+
+  // Handle en passant capture removal in simulation
+  if (enPassantTarget && piece.type === 'pawn' && isEnPassantMove(board, from, to, enPassantTarget)) {
+    const [epRow, epCol] = getCoordinatesFromSquare(enPassantTarget)
+    const captureRow = piece.color === 'white' ? epRow + 1 : epRow - 1
+    // Remove the captured pawn from its original square
+    temp[captureRow][epCol] = null
+  }
+
   temp[toRow][toCol] = { ...piece }
   temp[fromRow][fromCol] = null
   return !isKingInCheck(temp, piece.color)

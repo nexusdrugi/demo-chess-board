@@ -1,7 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, test, expect } from 'vitest'
 import { useChessGame, initialGameState } from '../useChessGame'
-import { GameState, Piece } from '../types/chess'
+import { GameState, ChessPiece } from '../../types/chess'
 
 // Helper to perform a move via the hook's public API
 const move = (hook: any, from: string, to: string) => {
@@ -121,7 +121,7 @@ describe('useChessGame - undo and castling rights', () => {
   })
 
   test('disables black queen-side castling when white captures the a8 rook', () => {
-    const customBoard: (Piece | null)[][] = initialGameState.board.map(r => r.map(p => null));
+    const customBoard: (ChessPiece | null)[][] = initialGameState.board.map(r => r.map(p => null));
 
     // Place pieces for the test scenario
     customBoard[0][0] = { type: 'rook', color: 'black' }; // Black rook on a8
@@ -146,6 +146,71 @@ describe('useChessGame - undo and castling rights', () => {
 
     const rights = hook.result.current.gameState.castlingRights
     expect(rights.black.queenSide).toBe(false)
+  })
+
+  test('performs en passant capture and supports undo/redo', () => {
+    const emptyBoard: (ChessPiece | null)[][] = initialGameState.board.map(r => r.map(() => null))
+
+    // Place pieces: white pawn on e5, black pawn on d7, kings on e1/e8
+    emptyBoard[8 - 5][4] = { type: 'pawn', color: 'white', hasMoved: true } // e5
+    emptyBoard[8 - 7][3] = { type: 'pawn', color: 'black', hasMoved: false } // d7
+    emptyBoard[8 - 1][4] = { type: 'king', color: 'white', hasMoved: false } // e1
+    emptyBoard[8 - 8][4] = { type: 'king', color: 'black', hasMoved: false } // e8
+
+    const customInitialState: GameState = {
+      ...initialGameState,
+      board: emptyBoard,
+      currentPlayer: 'black',
+      moveHistory: [],
+      redoHistory: [],
+      gameStatus: 'active',
+      selectedSquare: null,
+      validMoves: [],
+      isInCheck: false,
+      enPassantTarget: null
+    }
+
+    const { result } = renderHook(() => useChessGame(customInitialState))
+    const hook = { result }
+
+    // Black plays d7 -> d5 (sets enPassantTarget to d6)
+    act(() => {
+      hook.result.current.handleSquareClick('d7' as any)
+      hook.result.current.handlePieceDrop('d7' as any, 'd5' as any)
+    })
+    expect(hook.result.current.gameState.enPassantTarget).toBe('d6')
+
+    // White plays e5 -> d6 en passant
+    act(() => {
+      hook.result.current.handleSquareClick('e5' as any)
+      hook.result.current.handlePieceDrop('e5' as any, 'd6' as any)
+    })
+
+    const board = hook.result.current.gameState.board
+    // d6 has white pawn
+    expect(board[8 - 6][3]?.type).toBe('pawn')
+    expect(board[8 - 6][3]?.color).toBe('white')
+    // e5 is empty
+    expect(board[8 - 5][4]).toBeNull()
+    // d5 is empty (captured pawn removed from d5)
+    expect(board[8 - 5][3]).toBeNull()
+
+    const lastMove = hook.result.current.gameState.moveHistory[hook.result.current.gameState.moveHistory.length - 1]
+    expect(lastMove.isEnPassant).toBe(true)
+    expect(lastMove.notation.includes(' e.p.')).toBe(true)
+
+    // Undo the en passant
+    act(() => hook.result.current.undoMove())
+    const afterUndo = hook.result.current.gameState.board
+    expect(afterUndo[8 - 5][4]?.type).toBe('pawn') // e5 white pawn restored
+    expect(afterUndo[8 - 5][3]?.type).toBe('pawn') // d5 black pawn restored
+
+    // Redo the en passant
+    act(() => hook.result.current.redoMove())
+    const afterRedo = hook.result.current.gameState.board
+    expect(afterRedo[8 - 6][3]?.type).toBe('pawn')
+    expect(afterRedo[8 - 6][3]?.color).toBe('white')
+    expect(afterRedo[8 - 5][3]).toBeNull()
   })
 })
 

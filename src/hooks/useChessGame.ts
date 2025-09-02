@@ -1,5 +1,5 @@
 import { useReducer, useCallback } from 'react'
-import { GameState, GameAction, Square, PieceColor, CastlingRights, Move } from '../types/chess'
+import { GameState, GameAction, Square, PieceColor, CastlingRights, Move, ChessPiece } from '../types/chess'
 import { createInitialBoard, getPieceAtSquare, isValidSquare, BOARD_SIZE, createInitialCastlingRights, updateCastlingRightsForMove, generateAlgebraicNotation, getCoordinatesFromSquare } from '../utils/chessUtils'
 import { getValidMoves, isKingInCheck, isCheckmate, isStalemate, isEnPassantMove } from '../utils/moveValidation'
 

@@ -56,6 +56,25 @@ describe('moveValidation', () => {
       expect(moves).toContain('e4');
     });
 
+    it('includes en passant target when eligible', () => {
+      // White pawn on e5 (row 3, col 4), black pawn just moved d7->d5, so enPassantTarget is d6
+      const board = createCustomBoard([
+        { position: pos(3, 4), piece: createPiece('pawn', 'white', true) }, // e5
+        { position: pos(3, 3), piece: createPiece('pawn', 'black', true) }  // d5
+      ]);
+      const moves = getPawnMoves(board, getSquareFromCoordinates(3, 4), 'white', 'd6');
+      expect(moves).toContain('d6');
+    });
+
+    it('does not include en passant when not eligible', () => {
+      const board = createCustomBoard([
+        { position: pos(3, 4), piece: createPiece('pawn', 'white', true) }, // e5
+        { position: pos(3, 3), piece: createPiece('pawn', 'black', true) }  // d5
+      ]);
+      const moves = getPawnMoves(board, getSquareFromCoordinates(3, 4), 'white');
+      expect(moves).not.toContain('d6');
+    });
+
     it('should return correct moves for black pawn on starting position', () => {
       const board = createInitialBoard();
       const moves = getPawnMoves(board, getSquareFromCoordinates(1, 4), 'black');

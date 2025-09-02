@@ -154,7 +154,7 @@ Desktop-first design with mobile-adaptive layout. Touch interaction optimization
 - The rook MUST automatically move to the correct position when castling. ✅
 - Castling notation MUST display as "O-O" or "O-O-O" in move history. ✅
 
-## 15. En Passant Requirements (To Be Implemented)
+## 15. En Passant Requirements (Implemented)
 - The system MUST support en passant capture according to official chess rules
 - En passant MUST only be allowed when all conditions are met:
   - Opponent pawn moves exactly 2 squares from starting position

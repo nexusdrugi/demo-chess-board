@@ -130,36 +130,43 @@ export const isRookMove = (piece: ChessPiece | null): boolean => piece?.type ===
 // Update castling rights based on a move (king moves disable both sides; rook moves disable side from original corner)
 export const updateCastlingRightsForMove = (
   currentRights: CastlingRights,
-  piece: Piece,
+  piece: ChessPiece,
   from: Square,
   to: Square,
-  captured: Piece | null
+  captured?: ChessPiece | null
 ): CastlingRights => {
-  const newRights = { ...currentRights };
-  const movingPlayer = piece.color;
+  // Deep clone to avoid mutating input rights (tests expect immutability)
+  const newRights: CastlingRights = {
+    white: { ...currentRights.white },
+    black: { ...currentRights.black }
+  }
+  const movingPlayer = piece.color
 
+  // If the king moves, disable both sides for that color
   if (piece.type === 'king') {
-    newRights[movingPlayer] = { kingSide: false, queenSide: false };
+    newRights[movingPlayer] = { kingSide: false, queenSide: false }
   }
 
+  // If a rook moves from its original corner (and it hadn't moved before), disable that side
   if (piece.type === 'rook' && !piece.hasMoved) {
     if (from === (movingPlayer === 'white' ? 'a1' : 'a8')) {
-      newRights[movingPlayer].queenSide = false;
+      newRights[movingPlayer].queenSide = false
     } else if (from === (movingPlayer === 'white' ? 'h1' : 'h8')) {
-      newRights[movingPlayer].kingSide = false;
+      newRights[movingPlayer].kingSide = false
     }
   }
 
+  // If a rook is captured on a corner square, disable the appropriate side for the color of the captured rook
   if (captured?.type === 'rook') {
-    const opponent = movingPlayer === 'white' ? 'black' : 'white';
-    if (to === (opponent === 'white' ? 'a1' : 'a8')) {
-      newRights[opponent].queenSide = false;
-    } else if (to === (opponent === 'white' ? 'h1' : 'h8')) {
-      newRights[opponent].kingSide = false;
+    const capturedColor = captured.color
+    if (to === (capturedColor === 'white' ? 'a1' : 'a8')) {
+      newRights[capturedColor].queenSide = false
+    } else if (to === (capturedColor === 'white' ? 'h1' : 'h8')) {
+      newRights[capturedColor].kingSide = false
     }
   }
 
-  return newRights;
+  return newRights
 };
 
 // Notation helpers

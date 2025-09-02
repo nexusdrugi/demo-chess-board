@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2025-09-02 - En Passant Support & Tests; Castling Rights Fix
+
+### Added
+- En passant support in move legality simulation (isMoveLegal now removes captured pawn during e.p. simulation)
+- Unit tests for en passant move generation (utils/moveValidation.test.ts)
+- Integration test covering en passant execution and undo/redo (hooks/useChessGame.test.ts)
+
+### Fixed
+- Castling rights update function no longer mutates inputs; correctly updates rights based on captured rook color
+
+### Documentation
+- README: En passant moved from Future Enhancements to implemented game rules
+- WARP.md: updated to state en passant implemented
+- Technical Architecture: Section 16 marked Implemented with details
+- Requirements: En passant requirements marked Implemented
+
+### Chore
+- ESLint config fixed to use plugin: extends
+
 ## 2025-09-01 - Complete Documentation Update
 
 ### Documentation

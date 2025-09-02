@@ -111,12 +111,12 @@ src/
 - Check alert while active and automatic endgame detection (checkmate, stalemate)
 - Piece capture mechanics
 - Castling moves (king-side and queen-side)
+- En passant capture (with SAN "e.p." notation)
 - Visual feedback for valid moves
 
 ## Future Enhancements
 
 Potential features that could be added:
-- En passant capture
 - Pawn promotion
 - Enhanced game notation and export
 - AI opponent
